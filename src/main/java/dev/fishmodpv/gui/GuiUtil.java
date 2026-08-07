@@ -3,12 +3,15 @@ package dev.fishmodpv.gui;
 import dev.fishmodpv.nbt.SkyblockItem;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.List;
 
-/** Small drawing helpers shared by every profile-viewer tab. */
+/** Drawing helpers shared by every profile-viewer tab: light "vanilla GUI" panels, purple-headed cards, and bevelled item slots. */
 public final class GuiUtil {
 	public static final int SLOT_SIZE = 18;
+	private static final int HEADER_HEIGHT = 14;
 
 	private GuiUtil() {
 	}
@@ -20,50 +23,41 @@ public final class GuiUtil {
 		graphics.fill(x + w - 1, y, x + w, y + h, color);
 	}
 
-	public static void panel(GuiGraphics graphics, int x, int y, int w, int h) {
-		glassPanel(graphics, x, y, w, h, 1f);
+	/** The main window panel: a flat light "vanilla GUI" body with a dark outer / light inner bevel. */
+	public static void panel(GuiGraphics graphics, int x, int y, int w, int h, float openFraction) {
+		graphics.fill(x, y, x + w, y + h, GuiTheme.scaleAlpha(GuiTheme.PANEL_BG, openFraction));
+		border(graphics, x, y, w, h, GuiTheme.scaleAlpha(GuiTheme.PANEL_BORDER_DARK, openFraction));
+		graphics.fill(x + 1, y + 1, x + w - 1, y + 2, GuiTheme.scaleAlpha(GuiTheme.PANEL_BORDER_LIGHT, openFraction * 0.5f));
+		graphics.fill(x + 1, y + 1, x + 2, y + h - 1, GuiTheme.scaleAlpha(GuiTheme.PANEL_BORDER_LIGHT, openFraction * 0.5f));
 	}
 
 	/**
-	 * The "liquid glass" panel body: a smooth top-to-bottom gradient (translucent cool grey-blue,
-	 * lighter/more opaque at the top) plus a thin bright highlight streak along the top edge and a
-	 * soft glowing border - all {@link GuiGraphics#fillGradient} calls, so it stays perfectly smooth
-	 * at any resolution instead of a resampled/blurred texture.
-	 *
-	 * @param openFraction 0-1 fade/reveal amount, driven by an opening animation.
+	 * A section "card" like NEU/skyblock-pv's Info/Skills/Slayer boxes: a purple title bar over a
+	 * slightly darker body. Returns the y-coordinate content should start being drawn at.
 	 */
-	public static void glassPanel(GuiGraphics graphics, int x, int y, int w, int h, float openFraction) {
-		int top = GuiTheme.withAlpha(GuiTheme.GLASS_TOP_RGB, Math.round(GuiTheme.GLASS_TOP_ALPHA * openFraction));
-		int bottom = GuiTheme.withAlpha(GuiTheme.GLASS_BOTTOM_RGB, Math.round(GuiTheme.GLASS_BOTTOM_ALPHA * openFraction));
-		graphics.fillGradient(x, y, x + w, y + h, top, bottom);
+	public static int card(GuiGraphics graphics, Font font, int x, int y, int w, int h, String title) {
+		graphics.fill(x, y, x + w, y + HEADER_HEIGHT, GuiTheme.HEADER_PURPLE_BG);
+		border(graphics, x, y, w, HEADER_HEIGHT, GuiTheme.HEADER_PURPLE_BORDER);
+		int titleWidth = font.width(title);
+		graphics.drawString(font, Component.literal(title), x + (w - titleWidth) / 2, y + 3, GuiTheme.HEADER_TEXT, false);
 
-		int highlightHeight = Math.max(1, h / 5);
-		int highlightTop = GuiTheme.withAlpha(GuiTheme.GLASS_HIGHLIGHT_RGB, Math.round(0x45 * openFraction));
-		int highlightBottom = GuiTheme.withAlpha(GuiTheme.GLASS_HIGHLIGHT_RGB, 0);
-		graphics.fillGradient(x, y, x + w, y + highlightHeight, highlightTop, highlightBottom);
-
-		softCorners(graphics, x, y, w, h, openFraction);
-		border(graphics, x, y, w, h, GuiTheme.scaleAlpha(GuiTheme.PANEL_BORDER, openFraction));
+		int bodyY = y + HEADER_HEIGHT;
+		int bodyH = h - HEADER_HEIGHT;
+		graphics.fill(x, bodyY, x + w, bodyY + bodyH, GuiTheme.CARD_BG);
+		border(graphics, x, bodyY, w, bodyH, GuiTheme.CARD_BORDER);
+		return bodyY + 5;
 	}
 
-	/** Nibbles the four corners with a small stairstep so the sharp square panel reads as gently rounded. */
-	private static void softCorners(GuiGraphics graphics, int x, int y, int w, int h, float openFraction) {
-		int cut = GuiTheme.scaleAlpha(0xC0000000, openFraction);
-		// Top-left / top-right / bottom-left / bottom-right stairsteps (radius 3).
-		for (int i = 0; i < 3; i++) {
-			int inset = 3 - i;
-			graphics.fill(x, y + i, x + inset, y + i + 1, cut);
-			graphics.fill(x + w - inset, y + i, x + w, y + i + 1, cut);
-			graphics.fill(x, y + h - 1 - i, x + inset, y + h - i, cut);
-			graphics.fill(x + w - inset, y + h - 1 - i, x + w, y + h - i, cut);
-		}
-	}
-
-	/** Draws one inventory-style slot with its item (if any) and returns true if the mouse is over it. */
+	/** Draws one bevelled inventory-style slot with its item (if any) and returns true if the mouse is over it. */
 	public static boolean slot(GuiGraphics graphics, Font font, int x, int y, SkyblockItem item, int mouseX, int mouseY) {
 		boolean hovered = mouseX >= x && mouseX < x + SLOT_SIZE && mouseY >= y && mouseY < y + SLOT_SIZE;
-		graphics.fill(x, y, x + SLOT_SIZE, y + SLOT_SIZE, hovered ? GuiTheme.SLOT_BG_HOVER : GuiTheme.SLOT_BG);
-		border(graphics, x, y, SLOT_SIZE, SLOT_SIZE, GuiTheme.SLOT_BORDER);
+		graphics.fill(x, y, x + SLOT_SIZE, y + SLOT_SIZE, GuiTheme.SLOT_BORDER_DARK);
+		graphics.fill(x + 1, y + 1, x + SLOT_SIZE - 1, y + SLOT_SIZE - 1, hovered ? GuiTheme.SLOT_BG_HOVER : GuiTheme.SLOT_BG);
+		// Inset bevel: light line top+left, dark line bottom+right, like vanilla inventory slots.
+		graphics.fill(x + 1, y + 1, x + SLOT_SIZE - 1, y + 2, GuiTheme.SLOT_HIGHLIGHT);
+		graphics.fill(x + 1, y + 1, x + 2, y + SLOT_SIZE - 1, GuiTheme.SLOT_HIGHLIGHT);
+		graphics.fill(x + 1, y + SLOT_SIZE - 2, x + SLOT_SIZE - 1, y + SLOT_SIZE - 1, GuiTheme.SLOT_SHADOW);
+		graphics.fill(x + SLOT_SIZE - 2, y + 1, x + SLOT_SIZE - 1, y + SLOT_SIZE - 1, GuiTheme.SLOT_SHADOW);
 		if (item != null) {
 			graphics.renderItem(item.renderStack(), x + 1, y + 1);
 			graphics.renderItemDecorations(font, item.renderStack(), x + 1, y + 1);
@@ -92,12 +86,18 @@ public final class GuiUtil {
 		return hoveredItem;
 	}
 
+	/** A compact "icon + big number" stat, like the Skills/Slayer/Essence rows in skyblock-pv. */
+	public static void statChip(GuiGraphics graphics, Font font, int x, int y, ItemStack icon, String label, int color) {
+		graphics.renderItem(icon, x, y);
+		graphics.drawString(font, Component.literal(label), x + 18, y + 4, color, false);
+	}
+
 	public static void progressBar(GuiGraphics graphics, int x, int y, int width, int height, float fraction, int fillColor) {
 		graphics.fill(x, y, x + width, y + height, GuiTheme.BAR_BG);
 		int filled = Math.round(width * Math.max(0, Math.min(1, fraction)));
 		if (filled > 0) {
 			graphics.fill(x, y, x + filled, y + height, fillColor);
 		}
-		border(graphics, x, y, width, height, GuiTheme.PANEL_BORDER);
+		border(graphics, x, y, width, height, GuiTheme.BAR_BORDER);
 	}
 }

@@ -20,17 +20,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A "liquid glass" take on the old-NEU-style tabbed profile viewer: a translucent gradient panel
- * with a row of tabs across the top (Overview / Inventory / Skills / ...) and item-grid content
- * below. Every surface is drawn with smooth gradient fills (never a resampled/blurred texture, so
- * it never looks pixelated), and the chrome eases into place with {@link SmoothValue} rather than
- * snapping - the panel pops in on open and the active-tab indicator glides between tabs.
+ * A tabbed profile viewer styled after real Hypixel SkyBlock profile viewers: a light "vanilla
+ * GUI" panel sectioned into purple-headed cards (meowdding/skyblock-pv's look), with a row of
+ * real-item tab icons poking above the panel (NotEnoughUpdates' classic profile viewer). The
+ * panel eases into place and the active-tab highlight glides smoothly between tabs via
+ * {@link SmoothValue} rather than snapping.
  */
 public class ProfileViewerScreen extends Screen {
-	private static final int PANEL_WIDTH = 330;
-	private static final int PANEL_HEIGHT = 220;
-	private static final int TAB_HEIGHT = 18;
-	private static final int HEADER_HEIGHT = 14;
+	private static final int PANEL_WIDTH = 350;
+	private static final int PANEL_HEIGHT = 230;
+	private static final int TAB_SIZE = 24;
+	private static final int TAB_GAP = 2;
+	private static final int HEADER_HEIGHT = 13;
 
 	private final String requestedUsername;
 	private final List<ProfileTab> tabs = new ArrayList<>();
@@ -48,8 +49,7 @@ public class ProfileViewerScreen extends Screen {
 
 	private long lastRenderNanos = -1;
 	private final SmoothValue openAnim = new SmoothValue(0f, 9f);
-	private final SmoothValue indicatorX = new SmoothValue(0f, 16f);
-	private final SmoothValue indicatorW = new SmoothValue(0f, 16f);
+	private final SmoothValue indicatorX = new SmoothValue(0f, 18f);
 	private boolean indicatorInitialized = false;
 
 	private enum State { LOADING, LOADED, ERROR }
@@ -66,14 +66,14 @@ public class ProfileViewerScreen extends Screen {
 		tabs.add(new GardenTab());
 		tabs.add(new ShardsTab());
 		for (int i = 0; i < tabs.size(); i++) {
-			tabHover.add(new SmoothValue(0f, 12f));
+			tabHover.add(new SmoothValue(0f, 14f));
 		}
 	}
 
 	@Override
 	protected void init() {
 		guiLeft = (this.width - PANEL_WIDTH) / 2;
-		guiTop = (this.height - PANEL_HEIGHT) / 2;
+		guiTop = (this.height - PANEL_HEIGHT) / 2 + TAB_SIZE / 2;
 		openAnim.set(1f);
 
 		if (!fetchStarted) {
@@ -103,7 +103,6 @@ public class ProfileViewerScreen extends Screen {
 
 		openAnim.update(dt);
 		indicatorX.update(dt);
-		indicatorW.update(dt);
 		for (SmoothValue hover : tabHover) {
 			hover.update(dt);
 		}
@@ -114,9 +113,9 @@ public class ProfileViewerScreen extends Screen {
 	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
 		float openFraction = tickAnimations();
 
-		graphics.fill(0, 0, this.width, this.height, GuiTheme.scaleAlpha(0xC0000000, Math.min(1f, openFraction * 1.4f)));
+		graphics.fill(0, 0, this.width, this.height, GuiTheme.scaleAlpha(0xB0000000, Math.min(1f, openFraction * 1.4f)));
 
-		// Subtle pop-in: scale 92% -> 100% around the panel's centre while it fades/gradients in.
+		// Subtle pop-in: scale 92% -> 100% around the panel's centre while it fades in.
 		float scale = 0.92f + 0.08f * openFraction;
 		float pivotX = guiLeft + PANEL_WIDTH / 2f;
 		float pivotY = guiTop + PANEL_HEIGHT / 2f;
@@ -125,19 +124,19 @@ public class ProfileViewerScreen extends Screen {
 		graphics.pose().scale(scale, scale, 1f);
 		graphics.pose().translate(-pivotX, -pivotY, 0);
 
-		GuiUtil.glassPanel(graphics, guiLeft, guiTop, PANEL_WIDTH, PANEL_HEIGHT, openFraction);
-		renderHeader(graphics, openFraction);
 		renderTabBar(graphics, mouseX, mouseY, openFraction);
+		GuiUtil.panel(graphics, guiLeft, guiTop, PANEL_WIDTH, PANEL_HEIGHT, openFraction);
+		renderHeader(graphics, openFraction);
 
-		int contentX = guiLeft + 8;
-		int contentY = guiTop + HEADER_HEIGHT + TAB_HEIGHT + 6;
-		int contentWidth = PANEL_WIDTH - 16;
-		int contentHeight = PANEL_HEIGHT - HEADER_HEIGHT - TAB_HEIGHT - 14;
+		int contentX = guiLeft + 6;
+		int contentY = guiTop + HEADER_HEIGHT + 4;
+		int contentWidth = PANEL_WIDTH - 12;
+		int contentHeight = PANEL_HEIGHT - HEADER_HEIGHT - 10;
 
 		SkyblockItem hovered = null;
 		switch (state) {
 			case LOADING -> graphics.drawString(this.font, Component.literal("Loading " + requestedUsername + "'s profile..."),
-					contentX, contentY, GuiTheme.TEXT_GRAY, false);
+					contentX, contentY, GuiTheme.TEXT_MUTED, false);
 			case ERROR -> graphics.drawString(this.font, Component.literal("Error: " + errorMessage),
 					contentX, contentY, GuiTheme.TEXT_RED, false);
 			case LOADED -> {
@@ -161,44 +160,67 @@ public class ProfileViewerScreen extends Screen {
 	}
 
 	private void renderHeader(GuiGraphics graphics, float openFraction) {
-		graphics.fillGradient(guiLeft, guiTop, guiLeft + PANEL_WIDTH, guiTop + HEADER_HEIGHT,
-				GuiTheme.scaleAlpha(GuiTheme.HEADER_BG_TOP, openFraction), GuiTheme.scaleAlpha(GuiTheme.HEADER_BG_BOTTOM, openFraction));
 		String title = state == State.LOADED ? data.correctedName() + " - SkyBlock Profile" : "SkyBlock Profile Viewer";
-		graphics.drawString(this.font, Component.literal(title), guiLeft + 6, guiTop + 3, GuiTheme.TEXT_GOLD, false);
+		graphics.drawString(this.font, Component.literal(title), guiLeft + 6, guiTop + 3, GuiTheme.scaleAlpha(GuiTheme.TEXT_DARK, openFraction), false);
 	}
 
 	private void renderTabBar(GuiGraphics graphics, int mouseX, int mouseY, float openFraction) {
 		tabRects.clear();
-		int tabY = guiTop + HEADER_HEIGHT + 2;
-		int tabX = guiLeft + 4;
+		int tabY = guiTop - TAB_SIZE - 2;
+		int tabX = guiLeft;
 		for (int i = 0; i < tabs.size(); i++) {
-			String label = tabs.get(i).title();
-			int tabWidth = this.font.width(label) + 10;
 			boolean active = i == activeTab;
-			boolean hovered = mouseX >= tabX && mouseX < tabX + tabWidth && mouseY >= tabY && mouseY < tabY + TAB_HEIGHT - 2;
-			tabHover.get(i).set(hovered || active ? 1f : 0f);
+			boolean hovered = mouseX >= tabX && mouseX < tabX + TAB_SIZE && mouseY >= tabY && mouseY < tabY + TAB_SIZE;
+			tabHover.get(i).set(hovered ? 1f : 0f);
 
-			int glow = GuiTheme.scaleAlpha(GuiTheme.withAlpha(0xFFFFFF, 0x30), tabHover.get(i).get() * openFraction);
-			graphics.fillGradient(tabX, tabY, tabX + tabWidth, tabY + TAB_HEIGHT - 2, glow, GuiTheme.withAlpha(0xFFFFFF, 0));
-			graphics.drawString(this.font, Component.literal(label), tabX + 5, tabY + 4,
-					active ? GuiTheme.TAB_TEXT_ACTIVE : GuiTheme.TEXT_WHITE, false);
-
-			tabRects.add(new int[] {tabX, tabY, tabWidth, TAB_HEIGHT - 2});
-			tabX += tabWidth + 2;
+			tabRects.add(new int[] {tabX, tabY, TAB_SIZE, TAB_SIZE});
+			tabX += TAB_SIZE + TAB_GAP;
 		}
 
 		int[] activeRect = tabRects.get(activeTab);
 		indicatorX.set(activeRect[0]);
-		indicatorW.set(activeRect[2]);
 		if (!indicatorInitialized) {
 			indicatorX.snapTo(activeRect[0]);
-			indicatorW.snapTo(activeRect[2]);
 			indicatorInitialized = true;
 		}
 
-		int barY = tabY + TAB_HEIGHT - 3;
-		int barColor = GuiTheme.scaleAlpha(GuiTheme.TAB_INDICATOR, openFraction);
-		graphics.fill(Math.round(indicatorX.get()), barY, Math.round(indicatorX.get() + indicatorW.get()), barY + 1, barColor);
+		// Sliding highlight box drawn first so tab icons render on top of it.
+		int hx = Math.round(indicatorX.get());
+		GuiUtil.border(graphics, hx, tabY, TAB_SIZE, TAB_SIZE, GuiTheme.scaleAlpha(GuiTheme.TAB_INDICATOR, openFraction));
+		downArrow(graphics, hx + TAB_SIZE / 2, tabY - 5, GuiTheme.scaleAlpha(GuiTheme.TAB_INDICATOR, openFraction));
+
+		for (int i = 0; i < tabs.size(); i++) {
+			int[] rect = tabRects.get(i);
+			boolean active = i == activeTab;
+			float hover = tabHover.get(i).get();
+			int bg = active ? GuiTheme.TAB_BG_ACTIVE : lerpColor(GuiTheme.TAB_BG, GuiTheme.TAB_BG_HOVER, hover);
+			graphics.fill(rect[0], rect[1], rect[0] + TAB_SIZE, rect[1] + TAB_SIZE, GuiTheme.scaleAlpha(bg, openFraction));
+			GuiUtil.border(graphics, rect[0], rect[1], TAB_SIZE, TAB_SIZE, GuiTheme.scaleAlpha(GuiTheme.TAB_BORDER, openFraction));
+			graphics.renderItem(tabs.get(i).icon(), rect[0] + 4, rect[1] + 4);
+		}
+	}
+
+	/** A small downward-pointing marker above the active tab, like NEU's selection banner. */
+	private static void downArrow(GuiGraphics graphics, int centerX, int topY, int color) {
+		int width = 7;
+		for (int row = 0; row < 4; row++) {
+			int rowWidth = width - row * 2;
+			if (rowWidth <= 0) {
+				break;
+			}
+			graphics.fill(centerX - rowWidth / 2, topY + row, centerX - rowWidth / 2 + rowWidth, topY + row + 1, color);
+		}
+	}
+
+	private static int lerpColor(int from, int to, float t) {
+		t = Math.max(0, Math.min(1, t));
+		int fa = (from >>> 24) & 0xFF, fr = (from >> 16) & 0xFF, fg = (from >> 8) & 0xFF, fb = from & 0xFF;
+		int ta = (to >>> 24) & 0xFF, tr = (to >> 16) & 0xFF, tg = (to >> 8) & 0xFF, tb = to & 0xFF;
+		int a = Math.round(fa + (ta - fa) * t);
+		int r = Math.round(fr + (tr - fr) * t);
+		int g = Math.round(fg + (tg - fg) * t);
+		int b = Math.round(fb + (tb - fb) * t);
+		return (a << 24) | (r << 16) | (g << 8) | b;
 	}
 
 	@Override

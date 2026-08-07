@@ -9,6 +9,8 @@ import dev.fishmodpv.profile.SkyblockProfile;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 
 /**
  * A SkyPrizm-style "how far along is this profile" summary. This is a simple starting formula
@@ -25,6 +27,11 @@ public class ProgressionTab implements ProfileTab {
 	}
 
 	@Override
+	public ItemStack icon() {
+		return new ItemStack(Items.NETHER_STAR);
+	}
+
+	@Override
 	public SkyblockItem render(GuiGraphics graphics, Font font, ProfileService.Result data,
 			int x, int y, int width, int height, int mouseX, int mouseY) {
 		SkyblockProfile profile = data.selectedOrFirst();
@@ -36,31 +43,33 @@ public class ProgressionTab implements ProfileTab {
 			return null;
 		}
 
+		int contentY = GuiUtil.card(graphics, font, x, y, width, height, "Progression");
+
 		double skillScore = Math.min(1.0, member.skillAverage() / 60.0);
 		double levelScore = Math.min(1.0, member.skyblockLevel() / 40.0);
 		double slayerScore = Math.min(1.0, member.totalSlayerXp / SLAYER_XP_SOFT_CAP);
 		double overall = (skillScore * 0.5 + levelScore * 0.25 + slayerScore * 0.25) * 100.0;
 
-		int lineY = y;
-		graphics.drawString(font, Component.literal(String.format("Progression Score: %.1f / 100", overall)), x, lineY, GuiTheme.TEXT_GOLD, false);
+		int lineY = contentY;
+		graphics.drawString(font, Component.literal(String.format("Score: %.1f / 100", overall)), x + 5, lineY, GuiTheme.TEXT_GOLD, false);
+		lineY += 12;
+		GuiUtil.progressBar(graphics, x + 5, lineY, width - 10, 6, (float) (overall / 100.0), GuiTheme.BAR_FILL);
 		lineY += 14;
-		GuiUtil.progressBar(graphics, x, lineY, width - 10, 6, (float) (overall / 100.0), GuiTheme.BAR_FILL);
-		lineY += 16;
 
-		lineY = drawMetric(graphics, font, x, lineY, "Skill Average", member.skillAverage(), 60, "");
-		lineY = drawMetric(graphics, font, x, lineY, "SkyBlock Level", member.skyblockLevel(), 40, "");
-		lineY = drawMetric(graphics, font, x, lineY, "Total Slayer XP", member.totalSlayerXp, SLAYER_XP_SOFT_CAP, " xp");
+		lineY = drawMetric(graphics, font, x + 5, lineY, "Skill Average", member.skillAverage(), 60, "");
+		lineY = drawMetric(graphics, font, x + 5, lineY, "SkyBlock Level", member.skyblockLevel(), 40, "");
+		lineY = drawMetric(graphics, font, x + 5, lineY, "Total Slayer XP", member.totalSlayerXp, SLAYER_XP_SOFT_CAP, " xp");
 
-		lineY += 8;
-		graphics.drawString(font, Component.literal("Roadmap: catacombs level, sacks, minions and"), x, lineY, GuiTheme.TEXT_GRAY, false);
+		lineY += 6;
+		graphics.drawString(font, Component.literal("Roadmap: catacombs level, sacks, minions and"), x + 5, lineY, GuiTheme.TEXT_MUTED, false);
 		lineY += 10;
-		graphics.drawString(font, Component.literal("net worth will feed into this score in a later pass."), x, lineY, GuiTheme.TEXT_GRAY, false);
+		graphics.drawString(font, Component.literal("net worth will feed into this score in a later pass."), x + 5, lineY, GuiTheme.TEXT_MUTED, false);
 
 		return null;
 	}
 
 	private static int drawMetric(GuiGraphics graphics, Font font, int x, int y, String label, double value, double softCap, String suffix) {
-		graphics.drawString(font, Component.literal(String.format("%s: %,.1f%s", label, value, suffix)), x, y, GuiTheme.TEXT_WHITE, false);
+		graphics.drawString(font, Component.literal(String.format("%s: %,.1f%s", label, value, suffix)), x, y, GuiTheme.TEXT_DARK, false);
 		y += 9;
 		GuiUtil.progressBar(graphics, x, y, 150, 4, (float) Math.min(1.0, value / softCap), GuiTheme.BAR_FILL);
 		return y + 12;

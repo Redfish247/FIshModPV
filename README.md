@@ -1,11 +1,14 @@
 # FishMod PV
 
-A Hypixel SkyBlock companion mod for Fabric: an in-game **profile viewer** with an
-old-[NEU](https://github.com/NotEnoughUpdates/NotEnoughUpdates)-inspired tabbed GUI (rendered in a
-"liquid glass" style - translucent gradient panels, glowing borders, and a sliding animated tab
-indicator), pulling the kind of data [SkyCrypt](https://sky.shiiyu.moe) and
-[SkyPrizm](https://skyprizm.com) show on the web, directly into the game. It also reserves tab
-slots for [SkyMutations](https://www.t0r0nt0.dev)-style garden/mutation tools and
+A Hypixel SkyBlock companion mod for Fabric: an in-game **profile viewer** whose look is modeled
+directly on real SkyBlock profile viewers rather than invented from scratch - a light "vanilla
+GUI" panel sectioned into purple-headed cards, like [meowdding/skyblock-pv](https://github.com/meowdding/skyblock-pv)'s
+default theme, with a row of real-item tab icons poking above the panel, like
+[NotEnoughUpdates](https://github.com/notenoughupdates/notenoughupdates)'s classic profile viewer
+(both repos' actual source/screenshots were pulled in and used as reference while building this).
+It pulls the kind of data [SkyCrypt](https://sky.shiiyu.moe) and [SkyPrizm](https://skyprizm.com)
+show on the web directly into the game, and reserves tab slots for
+[SkyMutations](https://www.t0r0nt0.dev)-style garden/mutation tools and
 [SkyShards](https://skyshards.com)-style attribute shard tools, currently stubbed as "coming soon".
 
 ## Status: foundation pass
@@ -81,9 +84,9 @@ is what the command above assumes.)
   `ExtraAttributes` NBT and rendered ourselves (not vanilla's tooltip), matching how NEU/SkyCrypt
   do it.
 - `gui/` - the tabbed `ProfileViewerScreen` and its `tab/` implementations, plus `GuiTheme`/
-  `GuiUtil` (the glass-panel drawing helpers, all `GuiGraphics#fillGradient`-based) and
-  `SmoothValue` (the frame-rate-independent easing helper driving the open animation and the
-  sliding tab indicator).
+  `GuiUtil` (the light-panel/purple-card/vanilla-slot drawing helpers - colours sampled from real
+  NEU and skyblock-pv screenshots, not invented) and `SmoothValue` (the frame-rate-independent
+  easing helper driving the panel's open animation and the sliding active-tab highlight).
 - `config/` - `ModConfig`/`ConfigManager`: a small JSON file in the standard Fabric config dir.
 
 ## Known risk areas
@@ -101,8 +104,8 @@ likely spots, roughly in order of how exotic the API use is:
    `ListTag.getString(int, String)` takes a fallback the same way) are the least-verified part of
    this whole codebase. If the compiler complains here, this is where to look first.
 2. **`ProfileViewerScreen`** - `graphics.pose().pushPose()/translate()/scale()/popPose()` for the
-   panel's open-animation scale, `graphics.fillGradient(...)` for every glass surface, and
-   `graphics.renderTooltip(this.font, List<Component>, x, y)` - this last one is the least certain;
+   panel's open-animation scale, and `graphics.renderTooltip(this.font, List<Component>, x, y)` -
+   this last one is the least certain;
    Mojang's tooltip rendering has grown extra parameters over time (e.g. an `Optional` rich-tooltip
    component) so this simpler overload may not exist verbatim.
 3. **`GuiUtil.slot`** - draws an item's icon/count via `graphics.renderItem(stack, x, y)` +

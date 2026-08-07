@@ -1,46 +1,52 @@
 package dev.fishmodpv.gui;
 
 /**
- * "Liquid glass" palette: cool-toned translucent panels with soft gradients instead of flat
- * colours, gold accents for headers/active state (a nod to old NEU), evaluated purely through
- * {@link net.minecraft.client.gui.GuiGraphics#fillGradient} so every surface is a smooth,
- * GPU-interpolated blend - never a blurred/resampled texture, so it never looks pixelated.
+ * Palette modeled directly on real Hypixel SkyBlock profile viewers rather than an invented
+ * look: a light "vanilla GUI" grey body (like NEU's classic profile viewer), sectioned into
+ * purple-headed cards (like meowdding/skyblock-pv's default theme), with proper light/dark
+ * bevelled item slots and bright green progress bars. Colours were sampled from screenshots in
+ * notenoughupdates/notenoughupdates and meowdding/skyblock-pv.
  */
 public final class GuiTheme {
-	// Glass panel body: cool blue-grey, slightly more opaque at the top than the bottom.
-	public static final int GLASS_TOP_RGB = 0x3A4250;
-	public static final int GLASS_BOTTOM_RGB = 0x14161C;
-	public static final int GLASS_TOP_ALPHA = 0xB8;
-	public static final int GLASS_BOTTOM_ALPHA = 0x92;
+	// Outer panel body.
+	public static final int PANEL_BG = 0xFFE3E3EA;
+	public static final int PANEL_BORDER_DARK = 0xFF37373F;
+	public static final int PANEL_BORDER_LIGHT = 0xFFFFFFFF;
 
-	// A faint bright streak across the top of a panel, like light catching glass.
-	public static final int GLASS_HIGHLIGHT_RGB = 0xFFFFFF;
+	// Card (section) body, nested inside the panel.
+	public static final int CARD_BG = 0xFFC6C6D0;
+	public static final int CARD_BORDER = 0xFF8B8B99;
 
-	public static final int PANEL_BORDER = 0x80AEE0FF;
-	public static final int HEADER_BG_TOP = 0x50FFFFFF;
-	public static final int HEADER_BG_BOTTOM = 0x00FFFFFF;
+	// Section header bar (purple, like "Info" / "Skills" / "Slayer" headers).
+	public static final int HEADER_PURPLE_BG = 0xFFC49CF2;
+	public static final int HEADER_PURPLE_BORDER = 0xFF7C4FC2;
+	public static final int HEADER_TEXT = 0xFF2B2A38;
 
-	public static final int TAB_TEXT_ACTIVE = 0xFFFFAA00;
-	public static final int TAB_INDICATOR = 0xFFFFC847;
+	// Vanilla-style inventory slot bevel.
+	public static final int SLOT_BG = 0xFF8B8B93;
+	public static final int SLOT_BG_HOVER = 0xFFA3A3AD;
+	public static final int SLOT_BORDER_DARK = 0xFF373740;
+	public static final int SLOT_HIGHLIGHT = 0xFFC6C6D0;
+	public static final int SLOT_SHADOW = 0xFF55555E;
 
-	public static final int SLOT_BG = 0x552C333E;
-	public static final int SLOT_BORDER = 0x60AEE0FF;
-	public static final int SLOT_BG_HOVER = 0x80435068;
+	// Top icon-tab row.
+	public static final int TAB_BG = 0xFFC6C6D0;
+	public static final int TAB_BG_ACTIVE = 0xFFEDEDF2;
+	public static final int TAB_BG_HOVER = 0xFFD6D6E0;
+	public static final int TAB_BORDER = 0xFF8B8B99;
+	public static final int TAB_INDICATOR = 0xFF4CD15E;
 
-	public static final int TEXT_GOLD = 0xFFFFAA00;
-	public static final int TEXT_WHITE = 0xFFFFFFFF;
-	public static final int TEXT_GRAY = 0xFFAAAAAA;
-	public static final int TEXT_GREEN = 0xFF55FF55;
-	public static final int TEXT_RED = 0xFFFF5555;
-	public static final int BAR_BG = 0x801A1A1A;
-	public static final int BAR_FILL = 0xFF55FF9E;
+	public static final int TEXT_DARK = 0xFF2B2A38;
+	public static final int TEXT_MUTED = 0xFF5B5A68;
+	public static final int TEXT_GOLD = 0xFFE79A00;
+	public static final int TEXT_RED = 0xFFCC3333;
+	public static final int TEXT_GREEN = 0xFF2FA83B;
+
+	public static final int BAR_BG = 0xFF3A3A42;
+	public static final int BAR_FILL = 0xFF4CD15E;
+	public static final int BAR_BORDER = 0xFF232228;
 
 	private GuiTheme() {
-	}
-
-	/** Packs an 0xRRGGBB colour with the given alpha (0-255) into ARGB. */
-	public static int withAlpha(int rgb, int alpha) {
-		return ((alpha & 0xFF) << 24) | (rgb & 0xFFFFFF);
 	}
 
 	/** Scales an already-packed ARGB colour's alpha channel by a 0-1 fraction. */
@@ -51,18 +57,18 @@ public final class GuiTheme {
 
 	public static int rarityColor(String rarity) {
 		if (rarity == null) {
-			return TEXT_WHITE;
+			return TEXT_DARK;
 		}
 		return switch (rarity) {
-			case "COMMON" -> 0xFFFFFFFF;
-			case "UNCOMMON" -> 0xFF55FF55;
-			case "RARE" -> 0xFF5555FF;
-			case "EPIC" -> 0xFFAA00AA;
-			case "LEGENDARY" -> 0xFFFFAA00;
-			case "MYTHIC" -> 0xFFFF55FF;
-			case "DIVINE" -> 0xFF55FFFF;
-			case "SPECIAL", "VERY SPECIAL" -> 0xFFFF5555;
-			default -> TEXT_WHITE;
+			case "COMMON" -> 0xFF3A3A42;
+			case "UNCOMMON" -> 0xFF2FA83B;
+			case "RARE" -> 0xFF3A5FE0;
+			case "EPIC" -> 0xFF9A2FE0;
+			case "LEGENDARY" -> 0xFFE79A00;
+			case "MYTHIC" -> 0xFFE04FD8;
+			case "DIVINE" -> 0xFF2FC7D6;
+			case "SPECIAL", "VERY SPECIAL" -> 0xFFCC3333;
+			default -> TEXT_DARK;
 		};
 	}
 }
