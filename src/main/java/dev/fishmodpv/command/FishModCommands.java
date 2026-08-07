@@ -5,8 +5,8 @@ import dev.fishmodpv.config.ConfigManager;
 import dev.fishmodpv.gui.ProfileViewerScreen;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.text.Text;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.Component;
 
 public final class FishModCommands {
 	private FishModCommands() {
@@ -26,7 +26,7 @@ public final class FishModCommands {
 											String key = StringArgumentType.getString(context, "apikey");
 											ConfigManager.get().hypixelApiKey = key.trim();
 											ConfigManager.save();
-											context.getSource().sendFeedback(Text.literal("FishMod PV: Hypixel API key saved."));
+											context.getSource().sendFeedback(Component.literal("FishMod PV: Hypixel API key saved."));
 											return 1;
 										})))));
 	}
@@ -38,10 +38,10 @@ public final class FishModCommands {
 
 	private static int openProfile(net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource source, String player) {
 		if (ConfigManager.get().hypixelApiKey.isBlank()) {
-			source.sendError(Text.literal("No Hypixel API key set. Run /fishmod key <your-key> first (get one with /api new on Hypixel)."));
+			source.sendError(Component.literal("No Hypixel API key set. Run /fishmod key <your-key> first (get one with /api new on Hypixel)."));
 			return 0;
 		}
-		MinecraftClient.getInstance().setScreen(new ProfileViewerScreen(player));
+		Minecraft.getInstance().setScreen(new ProfileViewerScreen(player));
 		return 1;
 	}
 }

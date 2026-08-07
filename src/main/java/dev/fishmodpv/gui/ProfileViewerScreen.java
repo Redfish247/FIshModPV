@@ -11,10 +11,10 @@ import dev.fishmodpv.gui.tab.ShardsTab;
 import dev.fishmodpv.gui.tab.SkillsTab;
 import dev.fishmodpv.nbt.SkyblockItem;
 import dev.fishmodpv.profile.ProfileService;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.text.Text;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,7 +55,7 @@ public class ProfileViewerScreen extends Screen {
 	private enum State { LOADING, LOADED, ERROR }
 
 	public ProfileViewerScreen(String requestedUsername) {
-		super(Text.literal("SkyBlock Profile Viewer"));
+		super(Component.literal("SkyBlock Profile Viewer"));
 		this.requestedUsername = requestedUsername;
 		tabs.add(new OverviewTab());
 		tabs.add(new InventoryTab());
@@ -79,7 +79,7 @@ public class ProfileViewerScreen extends Screen {
 		if (!fetchStarted) {
 			fetchStarted = true;
 			ProfileService.fetch(requestedUsername).whenComplete((result, throwable) ->
-					MinecraftClient.getInstance().execute(() -> {
+					Minecraft.getInstance().execute(() -> {
 						if (throwable != null) {
 							Throwable cause = throwable.getCause() != null ? throwable.getCause() : throwable;
 							errorMessage = cause.getMessage() != null ? cause.getMessage() : cause.toString();
@@ -111,23 +111,23 @@ public class ProfileViewerScreen extends Screen {
 	}
 
 	@Override
-	public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
 		float openFraction = tickAnimations();
 
-		context.fill(0, 0, this.width, this.height, GuiTheme.scaleAlpha(0xC0000000, Math.min(1f, openFraction * 1.4f)));
+		graphics.fill(0, 0, this.width, this.height, GuiTheme.scaleAlpha(0xC0000000, Math.min(1f, openFraction * 1.4f)));
 
 		// Subtle pop-in: scale 92% -> 100% around the panel's centre while it fades/gradients in.
 		float scale = 0.92f + 0.08f * openFraction;
 		float pivotX = guiLeft + PANEL_WIDTH / 2f;
 		float pivotY = guiTop + PANEL_HEIGHT / 2f;
-		context.getMatrices().push();
-		context.getMatrices().translate(pivotX, pivotY, 0);
-		context.getMatrices().scale(scale, scale, 1f);
-		context.getMatrices().translate(-pivotX, -pivotY, 0);
+		graphics.pose().pushPose();
+		graphics.pose().translate(pivotX, pivotY, 0);
+		graphics.pose().scale(scale, scale, 1f);
+		graphics.pose().translate(-pivotX, -pivotY, 0);
 
-		GuiUtil.glassPanel(context, guiLeft, guiTop, PANEL_WIDTH, PANEL_HEIGHT, openFraction);
-		renderHeader(context, openFraction);
-		renderTabBar(context, mouseX, mouseY, openFraction);
+		GuiUtil.glassPanel(graphics, guiLeft, guiTop, PANEL_WIDTH, PANEL_HEIGHT, openFraction);
+		renderHeader(graphics, openFraction);
+		renderTabBar(graphics, mouseX, mouseY, openFraction);
 
 		int contentX = guiLeft + 8;
 		int contentY = guiTop + HEADER_HEIGHT + TAB_HEIGHT + 6;
@@ -136,51 +136,51 @@ public class ProfileViewerScreen extends Screen {
 
 		SkyblockItem hovered = null;
 		switch (state) {
-			case LOADING -> context.drawText(this.textRenderer, Text.literal("Loading " + requestedUsername + "'s profile..."),
+			case LOADING -> graphics.drawString(this.font, Component.literal("Loading " + requestedUsername + "'s profile..."),
 					contentX, contentY, GuiTheme.TEXT_GRAY, false);
-			case ERROR -> context.drawText(this.textRenderer, Text.literal("Error: " + errorMessage),
+			case ERROR -> graphics.drawString(this.font, Component.literal("Error: " + errorMessage),
 					contentX, contentY, GuiTheme.TEXT_RED, false);
 			case LOADED -> {
 				ProfileTab tab = tabs.get(activeTab);
-				hovered = tab.render(context, this.textRenderer, data, contentX, contentY, contentWidth, contentHeight, mouseX, mouseY);
+				hovered = tab.render(graphics, this.font, data, contentX, contentY, contentWidth, contentHeight, mouseX, mouseY);
 			}
 		}
 
-		context.getMatrices().pop();
+		graphics.pose().popPose();
 
 		if (hovered != null) {
-			context.drawTooltip(this.textRenderer, buildTooltip(hovered), mouseX, mouseY);
+			graphics.renderTooltip(this.font, buildTooltip(hovered), mouseX, mouseY);
 		}
 	}
 
-	private List<Text> buildTooltip(SkyblockItem item) {
-		List<Text> lines = new ArrayList<>();
+	private List<Component> buildTooltip(SkyblockItem item) {
+		List<Component> lines = new ArrayList<>();
 		lines.add(item.displayName());
 		lines.addAll(item.loreText());
 		return lines;
 	}
 
-	private void renderHeader(DrawContext context, float openFraction) {
-		context.fillGradient(guiLeft, guiTop, guiLeft + PANEL_WIDTH, guiTop + HEADER_HEIGHT,
+	private void renderHeader(GuiGraphics graphics, float openFraction) {
+		graphics.fillGradient(guiLeft, guiTop, guiLeft + PANEL_WIDTH, guiTop + HEADER_HEIGHT,
 				GuiTheme.scaleAlpha(GuiTheme.HEADER_BG_TOP, openFraction), GuiTheme.scaleAlpha(GuiTheme.HEADER_BG_BOTTOM, openFraction));
 		String title = state == State.LOADED ? data.correctedName() + " - SkyBlock Profile" : "SkyBlock Profile Viewer";
-		context.drawText(this.textRenderer, Text.literal(title), guiLeft + 6, guiTop + 3, GuiTheme.TEXT_GOLD, false);
+		graphics.drawString(this.font, Component.literal(title), guiLeft + 6, guiTop + 3, GuiTheme.TEXT_GOLD, false);
 	}
 
-	private void renderTabBar(DrawContext context, int mouseX, int mouseY, float openFraction) {
+	private void renderTabBar(GuiGraphics graphics, int mouseX, int mouseY, float openFraction) {
 		tabRects.clear();
 		int tabY = guiTop + HEADER_HEIGHT + 2;
 		int tabX = guiLeft + 4;
 		for (int i = 0; i < tabs.size(); i++) {
 			String label = tabs.get(i).title();
-			int tabWidth = this.textRenderer.getWidth(label) + 10;
+			int tabWidth = this.font.width(label) + 10;
 			boolean active = i == activeTab;
 			boolean hovered = mouseX >= tabX && mouseX < tabX + tabWidth && mouseY >= tabY && mouseY < tabY + TAB_HEIGHT - 2;
 			tabHover.get(i).set(hovered || active ? 1f : 0f);
 
 			int glow = GuiTheme.scaleAlpha(GuiTheme.withAlpha(0xFFFFFF, 0x30), tabHover.get(i).get() * openFraction);
-			context.fillGradient(tabX, tabY, tabX + tabWidth, tabY + TAB_HEIGHT - 2, glow, GuiTheme.withAlpha(0xFFFFFF, 0));
-			context.drawText(this.textRenderer, Text.literal(label), tabX + 5, tabY + 4,
+			graphics.fillGradient(tabX, tabY, tabX + tabWidth, tabY + TAB_HEIGHT - 2, glow, GuiTheme.withAlpha(0xFFFFFF, 0));
+			graphics.drawString(this.font, Component.literal(label), tabX + 5, tabY + 4,
 					active ? GuiTheme.TAB_TEXT_ACTIVE : GuiTheme.TEXT_WHITE, false);
 
 			tabRects.add(new int[] {tabX, tabY, tabWidth, TAB_HEIGHT - 2});
@@ -198,7 +198,7 @@ public class ProfileViewerScreen extends Screen {
 
 		int barY = tabY + TAB_HEIGHT - 3;
 		int barColor = GuiTheme.scaleAlpha(GuiTheme.TAB_INDICATOR, openFraction);
-		context.fill(Math.round(indicatorX.get()), barY, Math.round(indicatorX.get() + indicatorW.get()), barY + 1, barColor);
+		graphics.fill(Math.round(indicatorX.get()), barY, Math.round(indicatorX.get() + indicatorW.get()), barY + 1, barColor);
 	}
 
 	@Override
@@ -222,7 +222,7 @@ public class ProfileViewerScreen extends Screen {
 	}
 
 	@Override
-	public boolean shouldPause() {
+	public boolean isPauseScreen() {
 		return false;
 	}
 

@@ -15,9 +15,9 @@
 		"client": ["dev.fishmodpv.FishModPVClient"]
 	},
 	"depends": {
-		"fabricloader": ">=0.16.9",
+		"fabricloader": ">=0.18.4",
 		"fabric-api": "*",
-		"minecraft": "~1.21.1",
-		"java": ">=21"
+		"minecraft": "~26.1",
+		"java": ">=25"
 	}
 }

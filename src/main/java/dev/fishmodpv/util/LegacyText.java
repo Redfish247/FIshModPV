@@ -1,17 +1,17 @@
 package dev.fishmodpv.util;
 
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Style;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Style;
 
-/** Converts Minecraft's legacy "{@code §a}" formatting-code strings (as returned by the Hypixel API) into {@link Text}. */
+/** Converts Minecraft's legacy "{@code §a}" formatting-code strings (as returned by the Hypixel API) into a {@link Component}. */
 public final class LegacyText {
 	private LegacyText() {
 	}
 
-	public static MutableText parse(String raw) {
-		MutableText result = Text.literal("");
+	public static MutableComponent parse(String raw) {
+		MutableComponent result = Component.literal("");
 		if (raw == null || raw.isEmpty()) {
 			return result;
 		}
@@ -23,10 +23,10 @@ public final class LegacyText {
 		while (i < raw.length()) {
 			char c = raw.charAt(i);
 			if (c == '§' && i + 1 < raw.length()) {
-				Formatting formatting = Formatting.byCode(raw.charAt(i + 1));
+				ChatFormatting formatting = ChatFormatting.getByCode(raw.charAt(i + 1));
 				if (formatting != null) {
 					if (buffer.length() > 0) {
-						result.append(Text.literal(buffer.toString()).setStyle(style));
+						result.append(Component.literal(buffer.toString()).setStyle(style));
 						buffer.setLength(0);
 					}
 					style = applyFormatting(style, formatting);
@@ -39,17 +39,17 @@ public final class LegacyText {
 		}
 
 		if (buffer.length() > 0) {
-			result.append(Text.literal(buffer.toString()).setStyle(style));
+			result.append(Component.literal(buffer.toString()).setStyle(style));
 		}
 		return result;
 	}
 
-	private static Style applyFormatting(Style style, Formatting formatting) {
+	private static Style applyFormatting(Style style, ChatFormatting formatting) {
 		return switch (formatting) {
 			case RESET -> Style.EMPTY;
 			case BOLD -> style.withBold(true);
 			case ITALIC -> style.withItalic(true);
-			case UNDERLINE -> style.withUnderline(true);
+			case UNDERLINE -> style.withUnderlined(true);
 			case STRIKETHROUGH -> style.withStrikethrough(true);
 			case OBFUSCATED -> style.withObfuscated(true);
 			default -> formatting.isColor() ? style.withColor(formatting) : style;

@@ -6,9 +6,9 @@ import dev.fishmodpv.profile.PetData;
 import dev.fishmodpv.profile.ProfileMember;
 import dev.fishmodpv.profile.ProfileService;
 import dev.fishmodpv.profile.SkyblockProfile;
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.text.Text;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
 
 public class PetsTab implements ProfileTab {
 	@Override
@@ -17,7 +17,7 @@ public class PetsTab implements ProfileTab {
 	}
 
 	@Override
-	public SkyblockItem render(DrawContext context, TextRenderer textRenderer, ProfileService.Result data,
+	public SkyblockItem render(GuiGraphics graphics, Font font, ProfileService.Result data,
 			int x, int y, int width, int height, int mouseX, int mouseY) {
 		SkyblockProfile profile = data.selectedOrFirst();
 		if (profile == null) {
@@ -25,7 +25,7 @@ public class PetsTab implements ProfileTab {
 		}
 		ProfileMember member = profile.members.get(data.uuid());
 		if (member == null || member.pets.isEmpty()) {
-			context.drawText(textRenderer, Text.literal("No pets found on this profile."), x, y, GuiTheme.TEXT_GRAY, false);
+			graphics.drawString(font, Component.literal("No pets found on this profile."), x, y, GuiTheme.TEXT_GRAY, false);
 			return null;
 		}
 
@@ -35,13 +35,13 @@ public class PetsTab implements ProfileTab {
 		int rowY = y;
 		for (PetData pet : member.pets) {
 			if (rowY + rowHeight > y + height) {
-				context.drawText(textRenderer, Text.literal("..."), x, rowY, GuiTheme.TEXT_GRAY, false);
+				graphics.drawString(font, Component.literal("..."), x, rowY, GuiTheme.TEXT_GRAY, false);
 				break;
 			}
 			int color = GuiTheme.rarityColor(pet.tier());
 			String activeMarker = pet.active() ? " [Active]" : "";
 			String held = pet.heldItem() != null ? "  (" + prettify(pet.heldItem()) + ")" : "";
-			context.drawText(textRenderer, Text.literal(String.format("%s %s - %,.0f xp%s%s",
+			graphics.drawString(font, Component.literal(String.format("%s %s - %,.0f xp%s%s",
 					pet.tier(), pet.displayName(), pet.exp(), activeMarker, held)), x, rowY, color, false);
 			rowY += rowHeight;
 		}

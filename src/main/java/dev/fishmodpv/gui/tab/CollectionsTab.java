@@ -5,9 +5,9 @@ import dev.fishmodpv.nbt.SkyblockItem;
 import dev.fishmodpv.profile.ProfileMember;
 import dev.fishmodpv.profile.ProfileService;
 import dev.fishmodpv.profile.SkyblockProfile;
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.text.Text;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
 
 import java.util.List;
 import java.util.Map;
@@ -20,7 +20,7 @@ public class CollectionsTab implements ProfileTab {
 	}
 
 	@Override
-	public SkyblockItem render(DrawContext context, TextRenderer textRenderer, ProfileService.Result data,
+	public SkyblockItem render(GuiGraphics graphics, Font font, ProfileService.Result data,
 			int x, int y, int width, int height, int mouseX, int mouseY) {
 		SkyblockProfile profile = data.selectedOrFirst();
 		if (profile == null) {
@@ -28,7 +28,7 @@ public class CollectionsTab implements ProfileTab {
 		}
 		ProfileMember member = profile.members.get(data.uuid());
 		if (member == null || member.collections.isEmpty()) {
-			context.drawText(textRenderer, Text.literal("No collection data available for this member."), x, y, GuiTheme.TEXT_GRAY, false);
+			graphics.drawString(font, Component.literal("No collection data available for this member."), x, y, GuiTheme.TEXT_GRAY, false);
 			return null;
 		}
 
@@ -45,12 +45,12 @@ public class CollectionsTab implements ProfileTab {
 			int row = i % rowsPerColumn;
 			int rowX = x + col * colWidth;
 			if (rowX + colWidth > x + width) {
-				context.drawText(textRenderer, Text.literal("+ " + (sorted.size() - i) + " more..."), rowX, y + row * rowHeight, GuiTheme.TEXT_GRAY, false);
+				graphics.drawString(font, Component.literal("+ " + (sorted.size() - i) + " more..."), rowX, y + row * rowHeight, GuiTheme.TEXT_GRAY, false);
 				break;
 			}
 			Map.Entry<String, Long> entry = sorted.get(i);
 			String name = prettify(entry.getKey());
-			context.drawText(textRenderer, Text.literal(name + ": " + String.format("%,d", entry.getValue())),
+			graphics.drawString(font, Component.literal(name + ": " + String.format("%,d", entry.getValue())),
 					rowX, y + row * rowHeight, GuiTheme.TEXT_WHITE, false);
 		}
 

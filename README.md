@@ -17,16 +17,33 @@ viewer GUI (Overview / Inventory & Armor / Skills / Collections / Pets / Progres
 
 **This code has not been compiled.** The sandbox this was written in has no network access to
 Maven Central, the Fabric Maven, or Mojang's library servers, so `./gradlew build` could not be
-run here. The code was written carefully against well-established, stable Fabric/Yarn 1.21.1 APIs
-and passed a local `javac` syntax check, but you should expect to fix a handful of minor
-API-mapping mismatches (a renamed method, an argument order) on the first real build. Please open
-an issue (or just fix and commit) if something doesn't line up - see [Known risk areas](#known-risk-areas)
-below for exactly where to look first.
+run here. See [Known risk areas](#known-risk-areas) for exactly where to look first if the build
+doesn't come up clean.
+
+### Why this targets 26.1.2
+
+Minecraft moved to year-based versioning in 2026 (`26.1` = the first 2026 game drop, `26.1.2` a
+hotfix on it) - see [minecraft.net's announcement](https://www.minecraft.net/en-us/article/minecraft-new-version-numbering-system).
+More importantly for this codebase: **starting at 26.1, Fabric stopped maintaining Yarn mappings**
+and moved to Mojang's own official mappings, because Mojang began shipping the game with
+unobfuscated names. That's not a cosmetic change - it renames nearly every vanilla class and
+package this mod touches (`DrawContext` → `GuiGraphics`, `Text` → `Component`, `NbtCompound` →
+`CompoundTag`, `Identifier` → `ResourceLocation`, `MatrixStack` → `PoseStack`, and so on). Every
+file in this repo has been ported to those official names. The good news: "Mojang's official
+mappings" aren't new - they're the same ones NeoForge/Forge mods have used for years, so this port
+leans on that long-established naming rather than guessing at something brand new.
+
+One more knock-on effect worth knowing about: Minecraft's NBT read API changed around 1.21.5
+(before 26.1) so that `CompoundTag`/`ListTag` getters either return an `Optional` or require an
+explicit default/fallback value (e.g. `tag.getCompoundOrEmpty("key")`, `tag.getShort("key", (short) 0)`)
+instead of silently defaulting the old way. `nbt/ItemDecoder.java` is written against that newer
+API shape - see [Known risk areas](#known-risk-areas) if it doesn't quite match what 26.1.2 shipped.
 
 ## Requirements
 
-- Minecraft 1.21.1, Fabric Loader 0.16.9+, Fabric API
-- Java 21
+- Minecraft 26.1.2, Fabric Loader 0.18.4+, Fabric API 0.146.1+26.1.2
+- Java 25 (Minecraft 26.1 bumped its minimum JDK)
+- Gradle 9.4.0+ / Fabric Loom 1.15 (IntelliJ IDEA 2025.3+ if you want mixins to work in the IDE)
 - Your own [Hypixel API key](https://developer.hypixel.net/) (Hypixel retired shared keys; generate
   one with `/api new` in-game on Hypixel, or via the developer dashboard)
 
@@ -37,7 +54,7 @@ below for exactly where to look first.
 ```
 
 (No Gradle wrapper jar is checked in since this environment couldn't download one - run
-`gradle wrapper` once you have network access, or use a local Gradle 8.8+ install directly, which
+`gradle wrapper` once you have network access, or use a local Gradle 9.4+ install directly, which
 is what the command above assumes.)
 
 ## Using it in-game
@@ -64,32 +81,47 @@ is what the command above assumes.)
   `ExtraAttributes` NBT and rendered ourselves (not vanilla's tooltip), matching how NEU/SkyCrypt
   do it.
 - `gui/` - the tabbed `ProfileViewerScreen` and its `tab/` implementations, plus `GuiTheme`/
-  `GuiUtil` (the glass-panel drawing helpers, all `DrawContext#fillGradient`-based) and
+  `GuiUtil` (the glass-panel drawing helpers, all `GuiGraphics#fillGradient`-based) and
   `SmoothValue` (the frame-rate-independent easing helper driving the open animation and the
   sliding tab indicator).
 - `config/` - `ModConfig`/`ConfigManager`: a small JSON file in the standard Fabric config dir.
 
 ## Known risk areas
 
-Written from strong general Fabric/Yarn 1.21.1 knowledge but **unverified by an actual compile**.
-If the build fails, these are the most likely spots, roughly in order of how exotic the API use is:
+Written from strong general knowledge of Mojang's official mappings (the same ones NeoForge/Forge
+have used for years) but **unverified by an actual compile against real 26.1.2 jars**, and 26.1 is
+new enough that there's little to cross-check against. If the build fails, these are the most
+likely spots, roughly in order of how exotic the API use is:
 
-1. **`ItemDecoder`** (`nbt/ItemDecoder.java`) - `NbtIo.readCompound(DataInput, NbtSizeTracker)` and
-   `NbtElement.COMPOUND_TYPE`/`STRING_TYPE` constants. If the compiler complains here, check
-   whether your mappings want a different `NbtIo` overload (e.g. a version without the tracker
-   argument) or expose the type constants differently.
-2. **`ProfileViewerScreen`** - `context.getMatrices().push()/translate()/scale()/pop()` for the
-   panel's open-animation scale, and `context.fillGradient(...)` for every glass surface. Also
-   `context.drawTooltip(...)` and `context.drawItemInSlot(...)`.
-3. **`FishModCommands`** - Fabric's client command API v2 (`ClientCommandManager`,
-   `ClientCommandRegistrationCallback`, `FabricClientCommandSource`). Registration shape is stable
-   across recent versions but double-check the `dispatcher.register(...)` lambda's parameter list.
-4. **Hypixel API field paths** in `profile/*.java` - these are best-effort based on the documented
-   schema; if a value reads as 0/empty for a real player, the field probably moved. Add the new
-   path alongside the old one in the relevant `JsonPath.firstOf(...)` call rather than replacing it.
+1. **`ItemDecoder`** (`nbt/ItemDecoder.java`) - the biggest single risk in this port. It's written
+   against the post-1.21.5 "`Or`-suffixed" NBT accessor style (`getCompoundOrEmpty(key)`,
+   `getListOrEmpty(key)` with *no* type-int parameter, `getString(key, fallback)`,
+   `getShort(key, fallback)`, `getByte(key, fallback)`). The `OrEmpty` methods on `CompoundTag` are
+   confirmed to exist in this shape; the exact `ListTag` element accessors (e.g. whether
+   `ListTag.getString(int, String)` takes a fallback the same way) are the least-verified part of
+   this whole codebase. If the compiler complains here, this is where to look first.
+2. **`ProfileViewerScreen`** - `graphics.pose().pushPose()/translate()/scale()/popPose()` for the
+   panel's open-animation scale, `graphics.fillGradient(...)` for every glass surface, and
+   `graphics.renderTooltip(this.font, List<Component>, x, y)` - this last one is the least certain;
+   Mojang's tooltip rendering has grown extra parameters over time (e.g. an `Optional` rich-tooltip
+   component) so this simpler overload may not exist verbatim.
+3. **`GuiUtil.slot`** - draws an item's icon/count via `graphics.renderItem(stack, x, y)` +
+   `graphics.renderItemDecorations(font, stack, x, y)` (the two calls Yarn's old combined
+   `drawItemInSlot` used to make internally). Double-check both still exist as public `GuiGraphics`
+   methods.
+4. **`FishModCommands`** - Fabric's client command API v2 (`ClientCommandManager`,
+   `ClientCommandRegistrationCallback`, `FabricClientCommandSource`) is Fabric-authored, not a
+   remapped vanilla class, so it likely didn't move - but Fabric API did rename some of its own
+   classes to match Mojang's naming conventions in this release (e.g. `ItemGroupEvents` became
+   `CreativeModeTabEvents`), so it's worth a quick check if this file doesn't compile.
+5. **Hypixel API field paths** in `profile/*.java` - unrelated to the Minecraft version, these are
+   best-effort based on the documented Hypixel schema; if a value reads as 0/empty for a real
+   player, the field probably moved. Add the new path alongside the old one in the relevant
+   `JsonPath.firstOf(...)` call rather than replacing it.
 
-Everything else (Gson DTOs, `java.net.http` calls, plain data records) uses long-stable JDK/Gson
-APIs and is much lower risk.
+Everything else (Gson DTOs, `java.net.http` calls, plain data records, `ChatFormatting`/
+`Component`/`ResourceLocation`/`BuiltInRegistries` usage) is written against Mojmap names that have
+been stable across many Minecraft versions and is much lower risk.
 
 ## Roadmap
 

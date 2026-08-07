@@ -3,7 +3,7 @@ package dev.fishmodpv.gui;
 /**
  * "Liquid glass" palette: cool-toned translucent panels with soft gradients instead of flat
  * colours, gold accents for headers/active state (a nod to old NEU), evaluated purely through
- * {@link net.minecraft.client.gui.DrawContext#fillGradient} so every surface is a smooth,
+ * {@link net.minecraft.client.gui.GuiGraphics#fillGradient} so every surface is a smooth,
  * GPU-interpolated blend - never a blurred/resampled texture, so it never looks pixelated.
  */
 public final class GuiTheme {

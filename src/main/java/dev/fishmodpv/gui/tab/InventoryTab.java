@@ -6,9 +6,9 @@ import dev.fishmodpv.nbt.SkyblockItem;
 import dev.fishmodpv.profile.ProfileMember;
 import dev.fishmodpv.profile.ProfileService;
 import dev.fishmodpv.profile.SkyblockProfile;
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.text.Text;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
 
 import java.util.List;
 
@@ -20,7 +20,7 @@ public class InventoryTab implements ProfileTab {
 	}
 
 	@Override
-	public SkyblockItem render(DrawContext context, TextRenderer textRenderer, ProfileService.Result data,
+	public SkyblockItem render(GuiGraphics graphics, Font font, ProfileService.Result data,
 			int x, int y, int width, int height, int mouseX, int mouseY) {
 		SkyblockProfile profile = data.selectedOrFirst();
 		if (profile == null) {
@@ -28,7 +28,7 @@ public class InventoryTab implements ProfileTab {
 		}
 		ProfileMember member = profile.members.get(data.uuid());
 		if (member == null) {
-			context.drawText(textRenderer, Text.literal("No inventory data (co-op member privacy settings?)"), x, y, GuiTheme.TEXT_GRAY, false);
+			graphics.drawString(font, Component.literal("No inventory data (co-op member privacy settings?)"), x, y, GuiTheme.TEXT_GRAY, false);
 			return null;
 		}
 
@@ -36,30 +36,30 @@ public class InventoryTab implements ProfileTab {
 
 		// Armor column: stored boots -> helmet, displayed helmet on top like the vanilla screen.
 		List<SkyblockItem> armor = member.inventories.getOrDefault("armor", List.of());
-		context.drawText(textRenderer, Text.literal("Armor"), x, y, GuiTheme.TEXT_GRAY, false);
+		graphics.drawString(font, Component.literal("Armor"), x, y, GuiTheme.TEXT_GRAY, false);
 		int armorY = y + 11;
 		for (int i = armor.size() - 1; i >= 0; i--) {
 			SkyblockItem item = armor.get(i);
 			int slotY = armorY + (armor.size() - 1 - i) * GuiUtil.SLOT_SIZE;
-			if (GuiUtil.slot(context, textRenderer, x, slotY, item, mouseX, mouseY) && item != null) {
+			if (GuiUtil.slot(graphics, font, x, slotY, item, mouseX, mouseY) && item != null) {
 				hovered = item;
 			}
 		}
 
 		int invX = x + GuiUtil.SLOT_SIZE + 8;
-		context.drawText(textRenderer, Text.literal("Inventory"), invX, y, GuiTheme.TEXT_GRAY, false);
+		graphics.drawString(font, Component.literal("Inventory"), invX, y, GuiTheme.TEXT_GRAY, false);
 		List<SkyblockItem> inv = member.inventories.getOrDefault("inventory", List.of());
 		int mainRowsCount = Math.max(0, inv.size() - 9);
 		List<SkyblockItem> mainRows = inv.subList(0, Math.min(mainRowsCount, inv.size()));
 		List<SkyblockItem> hotbar = inv.size() > 9 ? inv.subList(inv.size() - 9, inv.size()) : inv;
 
 		int invY = y + 11;
-		SkyblockItem hoveredMain = GuiUtil.itemGrid(context, textRenderer, invX, invY, 9, mainRows, mouseX, mouseY);
+		SkyblockItem hoveredMain = GuiUtil.itemGrid(graphics, font, invX, invY, 9, mainRows, mouseX, mouseY);
 		if (hoveredMain != null) {
 			hovered = hoveredMain;
 		}
 		int hotbarY = invY + ((mainRows.size() + 8) / 9) * GuiUtil.SLOT_SIZE + 4;
-		SkyblockItem hoveredHotbar = GuiUtil.itemGrid(context, textRenderer, invX, hotbarY, 9, hotbar, mouseX, mouseY);
+		SkyblockItem hoveredHotbar = GuiUtil.itemGrid(graphics, font, invX, hotbarY, 9, hotbar, mouseX, mouseY);
 		if (hoveredHotbar != null) {
 			hovered = hoveredHotbar;
 		}
@@ -67,9 +67,9 @@ public class InventoryTab implements ProfileTab {
 		// Ender chest, off to the right if there's room.
 		int enderX = invX + 9 * GuiUtil.SLOT_SIZE + 12;
 		if (enderX + 9 * GuiUtil.SLOT_SIZE <= x + width) {
-			context.drawText(textRenderer, Text.literal("Ender Chest"), enderX, y, GuiTheme.TEXT_GRAY, false);
+			graphics.drawString(font, Component.literal("Ender Chest"), enderX, y, GuiTheme.TEXT_GRAY, false);
 			List<SkyblockItem> enderChest = member.inventories.getOrDefault("ender_chest", List.of());
-			SkyblockItem hoveredEnder = GuiUtil.itemGrid(context, textRenderer, enderX, y + 11, 9, enderChest, mouseX, mouseY);
+			SkyblockItem hoveredEnder = GuiUtil.itemGrid(graphics, font, enderX, y + 11, 9, enderChest, mouseX, mouseY);
 			if (hoveredEnder != null) {
 				hovered = hoveredEnder;
 			}

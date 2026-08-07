@@ -1,10 +1,10 @@
 package dev.fishmodpv.nbt;
 
 import dev.fishmodpv.util.LegacyText;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Text;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,11 +23,11 @@ public class SkyblockItem {
 	private final String rawDisplayName;
 	private final List<String> rawLore;
 	private final String skyblockId;
-	private final NbtCompound extraAttributes;
+	private final CompoundTag extraAttributes;
 	private final int count;
 
 	public SkyblockItem(ItemStack renderStack, String rawDisplayName, List<String> rawLore,
-			String skyblockId, NbtCompound extraAttributes, int count) {
+			String skyblockId, CompoundTag extraAttributes, int count) {
 		this.renderStack = renderStack;
 		this.rawDisplayName = rawDisplayName;
 		this.rawLore = rawLore;
@@ -48,16 +48,16 @@ public class SkyblockItem {
 		return skyblockId;
 	}
 
-	public NbtCompound extraAttributes() {
+	public CompoundTag extraAttributes() {
 		return extraAttributes;
 	}
 
-	public MutableText displayName() {
-		return rawDisplayName != null ? LegacyText.parse(rawDisplayName) : Text.literal(renderStack.getName().getString());
+	public MutableComponent displayName() {
+		return rawDisplayName != null ? LegacyText.parse(rawDisplayName) : Component.literal(renderStack.getHoverName().getString());
 	}
 
-	public List<Text> loreText() {
-		List<Text> lines = new ArrayList<>();
+	public List<Component> loreText() {
+		List<Component> lines = new ArrayList<>();
 		if (rawLore != null) {
 			for (String line : rawLore) {
 				lines.add(LegacyText.parse(line));

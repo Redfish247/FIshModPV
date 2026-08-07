@@ -1,15 +1,15 @@
 package dev.fishmodpv.nbt;
 
 import dev.fishmodpv.FishModPV;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.nbt.NbtIo;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.nbt.NbtSizeTracker;
-import net.minecraft.registry.Registries;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
@@ -26,6 +26,11 @@ import java.util.zip.GZIPInputStream;
  * <p>The root NBT compound has a single list tag, {@code "i"}, with one compound per inventory
  * slot in order (empty slots are present as empty/id-0 compounds so slot positions line up with
  * the real inventory grid). This class returns a same-size list where empty slots are {@code null}.
+ *
+ * <p>Uses the post-1.21.5 "Or"-suffixed NBT accessors (e.g. {@code getCompoundOrEmpty},
+ * {@code getListOrEmpty}, {@code getString(key, fallback)}) rather than the older accessors that
+ * returned {@code Optional} or threw - see the README's porting notes if these don't quite match
+ * what 26.1's actual `CompoundTag`/`ListTag` ended up shipping with.
  */
 public final class ItemDecoder {
 	private ItemDecoder() {
@@ -39,15 +44,15 @@ public final class ItemDecoder {
 
 		try {
 			byte[] compressed = Base64.getDecoder().decode(base64);
-			NbtCompound root;
+			CompoundTag root;
 			try (GZIPInputStream gzip = new GZIPInputStream(new ByteArrayInputStream(compressed));
 					DataInputStream data = new DataInputStream(gzip)) {
-				root = NbtIo.readCompound(data, NbtSizeTracker.ofUnlimited());
+				root = NbtIo.readCompound(data, NbtAccounter.unlimitedHeap());
 			}
 
-			NbtList items = root.getList("i", NbtElement.COMPOUND_TYPE);
+			ListTag items = root.getListOrEmpty("i");
 			for (int i = 0; i < items.size(); i++) {
-				result.add(decodeSlot(items.getCompound(i)));
+				result.add(decodeSlot(items.getCompoundOrEmpty(i)));
 			}
 		} catch (Exception e) {
 			FishModPV.LOGGER.error("Failed to decode SkyBlock item bytes", e);
@@ -55,44 +60,43 @@ public final class ItemDecoder {
 		return result;
 	}
 
-	private static SkyblockItem decodeSlot(NbtCompound slot) {
-		if (!slot.contains("id")) {
-			return null;
-		}
-		int legacyId = slot.getShort("id");
-		int count = slot.contains("Count") ? Byte.toUnsignedInt(slot.getByte("Count")) : 1;
+	private static SkyblockItem decodeSlot(CompoundTag slot) {
+		int legacyId = slot.getShort("id", (short) 0);
+		int count = Byte.toUnsignedInt(slot.getByte("Count", (byte) 1));
 		if (legacyId <= 0 || count <= 0) {
 			return null;
 		}
 
-		Identifier modernId = Identifier.of(LegacyItemIds.resolve(legacyId));
-		ItemStack renderStack = new ItemStack(Registries.ITEM.getOrEmpty(modernId).orElse(Items.PLAYER_HEAD), count);
+		ResourceLocation modernId = ResourceLocation.parse(LegacyItemIds.resolve(legacyId));
+		Item resolved = BuiltInRegistries.ITEM.get(modernId);
+		ItemStack renderStack = new ItemStack(resolved == null || resolved == Items.AIR ? Items.PLAYER_HEAD : resolved, count);
 
 		String displayName = null;
 		List<String> lore = null;
 		String skyblockId = null;
-		NbtCompound extraAttributes = null;
+		CompoundTag extraAttributes = null;
 
-		if (slot.contains("tag")) {
-			NbtCompound tag = slot.getCompound("tag");
-			if (tag.contains("display")) {
-				NbtCompound display = tag.getCompound("display");
-				if (display.contains("Name")) {
-					displayName = display.getString("Name");
-				}
-				if (display.contains("Lore")) {
-					NbtList loreList = display.getList("Lore", NbtElement.STRING_TYPE);
+		CompoundTag tag = slot.getCompoundOrEmpty("tag");
+		if (!tag.isEmpty()) {
+			CompoundTag display = tag.getCompoundOrEmpty("display");
+			if (!display.isEmpty()) {
+				String name = display.getString("Name", "");
+				displayName = name.isEmpty() ? null : name;
+
+				ListTag loreList = display.getListOrEmpty("Lore");
+				if (!loreList.isEmpty()) {
 					lore = new ArrayList<>();
 					for (int i = 0; i < loreList.size(); i++) {
-						lore.add(loreList.getString(i));
+						lore.add(loreList.getString(i, ""));
 					}
 				}
 			}
-			if (tag.contains("ExtraAttributes")) {
-				extraAttributes = tag.getCompound("ExtraAttributes");
-				if (extraAttributes.contains("id")) {
-					skyblockId = extraAttributes.getString("id");
-				}
+
+			CompoundTag extra = tag.getCompoundOrEmpty("ExtraAttributes");
+			if (!extra.isEmpty()) {
+				extraAttributes = extra;
+				String id = extra.getString("id", "");
+				skyblockId = id.isEmpty() ? null : id;
 			}
 		}
 
