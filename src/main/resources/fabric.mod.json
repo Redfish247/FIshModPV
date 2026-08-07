@@ -1,0 +1,23 @@
+{
+	"schemaVersion": 1,
+	"id": "fishmodpv",
+	"version": "${version}",
+	"name": "FishMod PV",
+	"description": "A Hypixel SkyBlock companion mod: an in-game profile viewer with an old-NEU-style GUI, plus tools inspired by SkyCrypt, SkyShards and SkyMutations.",
+	"authors": ["FishModPV contributors"],
+	"contact": {
+		"homepage": "https://github.com/redfish247/fishmodpv"
+	},
+	"license": "MIT",
+	"environment": "client",
+	"entrypoints": {
+		"main": ["dev.fishmodpv.FishModPV"],
+		"client": ["dev.fishmodpv.FishModPVClient"]
+	},
+	"depends": {
+		"fabricloader": ">=0.16.9",
+		"fabric-api": "*",
+		"minecraft": "~1.21.1",
+		"java": ">=21"
+	}
+}
