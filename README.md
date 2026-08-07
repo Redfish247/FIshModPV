@@ -131,6 +131,10 @@ been stable across many Minecraft versions and is much lower risk.
 Rough shape of what's still missing to actually combine all four inspirations, in the order it
 probably makes sense to build them:
 
+- **Theme switching (Light / Dark / NEU-transparent)** - matching meowdding/skyblock-pv's own theme
+  set; only the light palette is wired into `GuiTheme.java` so far. Next step: turn `GuiTheme`'s
+  constants into named palettes with an active-theme switch, driven by a
+  `/fishmod theme <light|dark|neu>` command and a config field.
 - **Net worth** (SkyCrypt/SkyPrizm) - price items using `/skyblock/bazaar` + `/skyblock/auctions`,
   feed it into the Progression tab.
 - **Dungeons/Catacombs + Slayer detail** - currently only total slayer XP feeds the progression

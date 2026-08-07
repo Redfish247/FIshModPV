@@ -34,16 +34,16 @@ public final class GuiTheme {
 	public static final int TAB_BG_ACTIVE = 0xFFEDEDF2;
 	public static final int TAB_BG_HOVER = 0xFFD6D6E0;
 	public static final int TAB_BORDER = 0xFF8B8B99;
-	public static final int TAB_INDICATOR = 0xFF4CD15E;
+	public static final int TAB_INDICATOR = 0xFF38B653;
 
 	public static final int TEXT_DARK = 0xFF2B2A38;
 	public static final int TEXT_MUTED = 0xFF5B5A68;
-	public static final int TEXT_GOLD = 0xFFE79A00;
-	public static final int TEXT_RED = 0xFFCC3333;
-	public static final int TEXT_GREEN = 0xFF2FA83B;
+	public static final int TEXT_GOLD = 0xFFB9740A;
+	public static final int TEXT_RED = 0xFFB53434;
+	public static final int TEXT_GREEN = 0xFF1F7A2C;
 
 	public static final int BAR_BG = 0xFF3A3A42;
-	public static final int BAR_FILL = 0xFF4CD15E;
+	public static final int BAR_FILL = 0xFF38B653;
 	public static final int BAR_BORDER = 0xFF232228;
 
 	private GuiTheme() {
@@ -64,10 +64,10 @@ public final class GuiTheme {
 			case "UNCOMMON" -> 0xFF2FA83B;
 			case "RARE" -> 0xFF3A5FE0;
 			case "EPIC" -> 0xFF9A2FE0;
-			case "LEGENDARY" -> 0xFFE79A00;
-			case "MYTHIC" -> 0xFFE04FD8;
-			case "DIVINE" -> 0xFF2FC7D6;
-			case "SPECIAL", "VERY SPECIAL" -> 0xFFCC3333;
+			case "LEGENDARY" -> 0xFFB9740A;
+			case "MYTHIC" -> 0xFFC93FC0;
+			case "DIVINE" -> 0xFF1FA8B8;
+			case "SPECIAL", "VERY SPECIAL" -> 0xFFB53434;
 			default -> TEXT_DARK;
 		};
 	}
