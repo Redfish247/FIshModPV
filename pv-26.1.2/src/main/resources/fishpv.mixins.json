@@ -1,0 +1,13 @@
+{
+	"required": true,
+	"package": "fishpv.mixin",
+	"compatibilityLevel": "JAVA_25",
+	"client": [
+		"ChatScreenClickMixin",
+		"ItemModelResolverIconProbeMixin",
+		"ScreenClickCommandMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

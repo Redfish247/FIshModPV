@@ -1,0 +1,57 @@
+plugins {
+	id 'net.fabricmc.fabric-loom' version "${loom_version}"
+}
+
+version = project.mod_version
+group = project.maven_group
+
+base {
+	archivesName = project.archives_base_name
+}
+
+java {
+	toolchain.languageVersion = JavaLanguageVersion.of(25)
+	withSourcesJar()
+}
+
+loom {
+	runConfigs.named("client") {
+		setIdeConfigGenerated(true)
+		vmArg("-Ddevauth.enabled=true")
+		vmArg("-Ddevauth.account=main")
+	}
+	runConfigs.named("server") {
+		setIdeConfigGenerated(false)
+	}
+}
+
+repositories {
+	maven { url = "https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1" }
+	mavenCentral()
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+	runtimeOnly("me.djtheredstoner:DevAuth-fabric:1.2.1")
+}
+
+processResources {
+	inputs.property "version", project.version
+	inputs.property "minecraftDep", project.findProperty("minecraft_dep") ?: "~26.1.2"
+	filesMatching("fabric.mod.json") {
+		expand inputs.properties
+	}
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.release = 25
+	it.options.encoding = 'UTF-8'
+}
+
+jar {
+	from("../LICENSE") {
+		rename { "${it}_FishPV" }
+	}
+}

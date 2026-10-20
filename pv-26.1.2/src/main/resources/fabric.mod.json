@@ -1,0 +1,27 @@
+{
+	"schemaVersion": 1,
+	"id": "fishpv",
+	"version": "${version}",
+	"name": "FishPV",
+	"description": "Skyblock profile viewer (/pv) with networth, dungeons, slayers, skills and more. Derived from BetterPV by Vyriv.",
+	"authors": [
+		"Redfish2471"
+	],
+	"license": "MPL-2.0",
+	"icon": "assets/betterpv/icon.png",
+	"environment": "client",
+	"entrypoints": {
+		"client": [
+			"fishpv.FishPVInit"
+		]
+	},
+	"mixins": [
+		"fishpv.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.19.3",
+		"minecraft": "${minecraftDep}",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}
