@@ -42,6 +42,8 @@ public final class HypixelApiClient {
 	private static final URI MOJANG_PROFILE = URI.create("https://api.mojang.com/users/profiles/minecraft/");
 	private static final URI MOJANG_SESSION = URI.create("https://sessionserver.mojang.com/session/minecraft/profile/");
 	private static final Duration TIMEOUT = Duration.ofSeconds(40);
+	/** Why the last proxy request failed; shown in the viewer error. */
+	static volatile String lastFailure;
 	private static final Duration UUID_LOOKUP_TIMEOUT = Duration.ofSeconds(5);
 	// The server may try two Mojang endpoints before answering from an older entry.
 	private static final Duration SERVER_UUID_TIMEOUT = Duration.ofSeconds(8);
@@ -704,16 +706,19 @@ public final class HypixelApiClient {
 				if (allowReauth) {
 					return getJson(url, false, allowStreamRetry, RequestTiming.retry(timing.correlationId()));
 				}
+				lastFailure = "HTTP 401";
 				BetterPV.LOGGER.warn("Hypixel GET {} unauthorized after re-auth", url);
 				return Optional.empty();
 			}
 			if (response.statusCode() == 503 && needsProxyAuth) {
 				logTiming(url, response, bytes.length, timing, startedNanos, headersNanos, bodyNanos, 0L, 0L, bodyRead);
+				lastFailure = "HTTP 503";
 				BetterPV.LOGGER.warn("Hypixel GET {} session auth unavailable (503)", url);
 				return Optional.empty();
 			}
 			if (response.statusCode() < 200 || response.statusCode() >= 300 || bytes.length == 0) {
 				logTiming(url, response, bytes.length, timing, startedNanos, headersNanos, bodyNanos, 0L, 0L, bodyRead);
+				lastFailure = response.statusCode() >= 200 && response.statusCode() < 300 ? "empty response" : "HTTP " + response.statusCode();
 				BetterPV.LOGGER.warn("Hypixel GET {} failed status={}", url, response.statusCode());
 				return Optional.empty();
 			}
@@ -750,6 +755,7 @@ public final class HypixelApiClient {
 			}
 			JsonObject root = element.getAsJsonObject();
 			if (root.has("success") && root.get("success").isJsonPrimitive() && !root.get("success").getAsBoolean()) {
+				lastFailure = root.has("cause") ? root.get("cause").getAsString() : "success=false";
 				return Optional.empty();
 			}
 			if (cacheKey != null) {
@@ -757,6 +763,7 @@ public final class HypixelApiClient {
 			}
 			return Optional.of(root);
 		} catch (IOException | InterruptedException exception) {
+			lastFailure = exception.getClass().getSimpleName() + (exception.getMessage() == null ? "" : ": " + exception.getMessage());
 			BetterPV.LOGGER.warn("Hypixel GET {} failed", url, exception);
 			if (exception instanceof InterruptedException) {
 				Thread.currentThread().interrupt();

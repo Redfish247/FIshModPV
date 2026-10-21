@@ -40,6 +40,9 @@ public final class BetterPVClient {
 	private static final AtomicBoolean PV_OVERRIDE_FAILED = new AtomicBoolean(false);
 	private static final AtomicBoolean PV_SHADOW_CHAT_SENT = new AtomicBoolean(false);
 
+	/** Opens the settings screen after chat has closed. */
+	private static int settingsDelayTicks;
+
 	public static void init() {
 		BetterPVConfig.load();
 		ItemPricer.start();
@@ -59,7 +62,15 @@ public final class BetterPVClient {
 			dispatcher.register(
 				ClientCommands.literal("betterpv")
 					.then(buildPvCommand(ClientCommands.literal("pv")))
+					.then(ClientCommands.literal("settings").executes(ctx -> {
+						settingsDelayTicks = 2;
+						return 1;
+					}))
 			);
+			dispatcher.register(ClientCommands.literal("pvsettings").executes(ctx -> {
+				settingsDelayTicks = 2;
+				return 1;
+			}));
 		});
 
 		ResourceManagerHelper.get(PackType.CLIENT_RESOURCES).registerReloadListener(
@@ -86,6 +97,11 @@ public final class BetterPVClient {
 		);
 		ClientTickEvents.END_CLIENT_TICK.register(ProfileViewerOpener::tick);
 		ClientTickEvents.END_CLIENT_TICK.register(BetterPVClient::warnPvShadowedOnce);
+		ClientTickEvents.END_CLIENT_TICK.register(client -> {
+			if (settingsDelayTicks > 0 && --settingsDelayTicks == 0) {
+				fishpv.compat.PvCompat.showScreen(client, new fishpv.gui.PvSettingsScreen(null));
+			}
+		});
 		BetterPV.LOGGER.info("BetterPV client ready - /pv");
 	}
 

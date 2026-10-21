@@ -13,6 +13,9 @@
 	"entrypoints": {
 		"client": [
 			"fishpv.FishPVInit"
+		],
+		"modmenu": [
+			"fishpv.ModMenuEntry"
 		]
 	},
 	"mixins": [
