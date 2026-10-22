@@ -70,6 +70,12 @@ public final class BetterPVConfig {
 		return document.has("overflowSkills") && document.get("overflowSkills").getAsBoolean();
 	}
 
+	/** Optional override for the proxy fallback host (betterpv.json "fallbackHost"). */
+	public static String fallbackHost() {
+		return document.has("fallbackHost") && document.get("fallbackHost").isJsonPrimitive()
+			? document.get("fallbackHost").getAsString().trim() : "";
+	}
+
 	public static synchronized void setEnabled(boolean value) {
 		document.addProperty("enabled", value);
 		save();

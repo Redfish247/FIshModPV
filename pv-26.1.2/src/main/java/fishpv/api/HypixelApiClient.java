@@ -39,6 +39,8 @@ import java.util.zip.GZIPInputStream;
 
 public final class HypixelApiClient {
 	private static final String WORKER_BASE = "https://fishmod.dev";
+	/** Same worker under its workers.dev name, tried when fishmod.dev is reset on the player's network. */
+	private static final String WORKER_FALLBACK_BASE = "";
 	private static final URI MOJANG_PROFILE = URI.create("https://api.mojang.com/users/profiles/minecraft/");
 	private static final URI MOJANG_SESSION = URI.create("https://sessionserver.mojang.com/session/minecraft/profile/");
 	private static final Duration TIMEOUT = Duration.ofSeconds(40);
@@ -697,7 +699,9 @@ public final class HypixelApiClient {
 					return cached;
 				}
 			}
-			URI uri = URI.create(target);
+			String fallback = BetterPVConfig.fallbackHost().isBlank() ? WORKER_FALLBACK_BASE : BetterPVConfig.fallbackHost();
+			boolean useFallback = netAttempt >= 2 && !fallback.isBlank() && target.startsWith(WORKER_BASE);
+			URI uri = URI.create(useFallback ? fallback.replaceAll("/+$", "") + target.substring(WORKER_BASE.length()) : target);
 			HttpRequest.Builder builder = HttpRequest.newBuilder(uri).timeout(TIMEOUT).GET();
 			boolean needsProxyAuth = target.startsWith(WORKER_BASE);
 			if (needsProxyAuth && !FishProxyAuth.applyAuthHeaders(builder, uri)) {
