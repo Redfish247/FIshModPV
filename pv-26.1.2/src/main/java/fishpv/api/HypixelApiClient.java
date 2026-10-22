@@ -40,7 +40,9 @@ import java.util.zip.GZIPInputStream;
 public final class HypixelApiClient {
 	private static final String WORKER_BASE = "https://fishmod.dev";
 	/** Same worker under its workers.dev name, tried when fishmod.dev is reset on the player's network. */
-	private static final String WORKER_FALLBACK_BASE = "";
+	private static final String WORKER_FALLBACK_BASE = "https://fishmod.redfish2471.workers.dev";
+	/** Set once fishmod.dev is reset on this network, so later requests go straight to the fallback. */
+	private static volatile boolean fallbackSticky;
 	private static final URI MOJANG_PROFILE = URI.create("https://api.mojang.com/users/profiles/minecraft/");
 	private static final URI MOJANG_SESSION = URI.create("https://sessionserver.mojang.com/session/minecraft/profile/");
 	private static final Duration TIMEOUT = Duration.ofSeconds(40);
@@ -700,7 +702,7 @@ public final class HypixelApiClient {
 				}
 			}
 			String fallback = BetterPVConfig.fallbackHost().isBlank() ? WORKER_FALLBACK_BASE : BetterPVConfig.fallbackHost();
-			boolean useFallback = netAttempt >= 2 && !fallback.isBlank() && target.startsWith(WORKER_BASE);
+			boolean useFallback = (fallbackSticky || netAttempt >= 1) && !fallback.isBlank() && target.startsWith(WORKER_BASE);
 			URI uri = URI.create(useFallback ? fallback.replaceAll("/+$", "") + target.substring(WORKER_BASE.length()) : target);
 			HttpRequest.Builder builder = HttpRequest.newBuilder(uri).timeout(TIMEOUT).GET();
 			boolean needsProxyAuth = target.startsWith(WORKER_BASE);
@@ -803,6 +805,9 @@ public final class HypixelApiClient {
 			return Optional.of(root);
 		} catch (IOException | InterruptedException exception) {
 			if (exception instanceof IOException io && netAttempt < 3 && isTransientNetwork(io)) {
+				if (io instanceof javax.net.ssl.SSLException) {
+					fallbackSticky = true;
+				}
 				BetterPV.LOGGER.warn("Hypixel GET {} network error ({}), retry {}", url, exception.toString(), netAttempt + 1);
 				try {
 					Thread.sleep(300L * (netAttempt + 1));
