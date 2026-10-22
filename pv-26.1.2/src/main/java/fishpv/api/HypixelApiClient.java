@@ -652,6 +652,24 @@ public final class HypixelApiClient {
 		boolean allowStreamRetry,
 		RequestTiming timing
 	) {
+		return getJson(url, allowReauth, allowStreamRetry, timing, 0);
+	}
+
+	/** Connection-level failures worth retrying (Cloudflare occasionally resets a fresh TLS handshake). */
+	private static boolean isTransientNetwork(IOException exception) {
+		return exception instanceof javax.net.ssl.SSLException
+			|| exception instanceof java.net.ConnectException
+			|| exception instanceof java.net.http.HttpConnectTimeoutException
+			|| exception instanceof java.nio.channels.ClosedChannelException;
+	}
+
+	private static Optional<JsonObject> getJson(
+		String url,
+		boolean allowReauth,
+		boolean allowStreamRetry,
+		RequestTiming timing,
+		int netAttempt
+	) {
 		String cacheKey = null;
 		try {
 			String target = rewriteUrl(url);
@@ -763,6 +781,16 @@ public final class HypixelApiClient {
 			}
 			return Optional.of(root);
 		} catch (IOException | InterruptedException exception) {
+			if (exception instanceof IOException io && netAttempt < 3 && isTransientNetwork(io)) {
+				BetterPV.LOGGER.warn("Hypixel GET {} network error ({}), retry {}", url, exception.toString(), netAttempt + 1);
+				try {
+					Thread.sleep(300L * (netAttempt + 1));
+				} catch (InterruptedException interrupted) {
+					Thread.currentThread().interrupt();
+					return Optional.empty();
+				}
+				return getJson(url, allowReauth, allowStreamRetry, timing, netAttempt + 1);
+			}
 			lastFailure = exception.getClass().getSimpleName() + (exception.getMessage() == null ? "" : ": " + exception.getMessage());
 			BetterPV.LOGGER.warn("Hypixel GET {} failed", url, exception);
 			if (exception instanceof InterruptedException) {
