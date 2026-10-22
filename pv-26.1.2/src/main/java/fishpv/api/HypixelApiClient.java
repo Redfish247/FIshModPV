@@ -51,6 +51,22 @@ public final class HypixelApiClient {
 	private static final long SPACING_MS = 80L;
 
 	private static final HttpClient HTTP = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
+	/** Fallbacks for networks that reset the default TLS 1.3 / HTTP/2 handshake: TLS 1.2 + HTTP/1.1, then HTTP/1.1 only. */
+	private static final HttpClient HTTP_TLS12 = HttpClient.newBuilder()
+		.connectTimeout(Duration.ofSeconds(5))
+		.version(HttpClient.Version.HTTP_1_1)
+		.sslParameters(tls12Parameters())
+		.build();
+	private static final HttpClient HTTP_H1 = HttpClient.newBuilder()
+		.connectTimeout(Duration.ofSeconds(5))
+		.version(HttpClient.Version.HTTP_1_1)
+		.build();
+
+	private static javax.net.ssl.SSLParameters tls12Parameters() {
+		javax.net.ssl.SSLParameters params = new javax.net.ssl.SSLParameters();
+		params.setProtocols(new String[] {"TLSv1.2"});
+		return params;
+	}
 	private static final ConcurrentHashMap<String, JsonObject> PLAYER_CACHE = new ConcurrentHashMap<>();
 	private static final ConcurrentHashMap<String, Long> PLAYER_CACHED_AT = new ConcurrentHashMap<>();
 	private static final ConcurrentHashMap<String, CompletableFuture<Optional<JsonObject>>> PLAYER_IN_FLIGHT =
@@ -698,7 +714,8 @@ public final class HypixelApiClient {
 				builder.setHeader("X-BetterPV-Correlation-ID", timing.correlationId());
 			}
 			long startedNanos = System.nanoTime();
-			HttpResponse<InputStream> response = HTTP.send(builder.build(), HttpResponse.BodyHandlers.ofInputStream());
+			HttpClient client = netAttempt == 0 ? HTTP : netAttempt == 1 ? HTTP_TLS12 : HTTP_H1;
+			HttpResponse<InputStream> response = client.send(builder.build(), HttpResponse.BodyHandlers.ofInputStream());
 			long headersNanos = System.nanoTime();
 			boolean streamed = "1".equals(response.headers().firstValue("x-hypixel-stream").orElse(""));
 			byte[] bytes;
