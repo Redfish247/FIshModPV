@@ -102,6 +102,20 @@ public final class BetterPVClient {
 				fishpv.compat.PvCompat.showScreen(client, new fishpv.gui.PvSettingsScreen(null));
 			}
 		});
+		String selfTest = System.getProperty("fishpv.selftest", System.getenv("FISHPV_SELFTEST"));
+		if (selfTest != null && !selfTest.isBlank()) {
+			Thread t = new Thread(() -> {
+				try {
+					Thread.sleep(8000L);
+					fishpv.api.ProfileFetcher.fetch(selfTest.trim()).whenComplete((lp, err) -> BetterPV.LOGGER.info(
+						"[FishPV selftest] {} ok={} err={} lastFailure={}",
+						selfTest, lp != null && lp.ok(), err, fishpv.api.FishProxyAuth.userFacingFailure().orElse("-")));
+				} catch (InterruptedException ignored) {
+				}
+			}, "FishPV-selftest");
+			t.setDaemon(true);
+			t.start();
+		}
 		BetterPV.LOGGER.info("BetterPV client ready - /pv");
 	}
 
