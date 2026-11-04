@@ -1957,8 +1957,8 @@ public final class InventoryPage {
 		if (mc == null || mc.getWindow() == null) {
 			return false;
 		}
-		return InputConstants.isKeyDown(mc.getWindow(), InputConstants.KEY_LCONTROL)
-			|| InputConstants.isKeyDown(mc.getWindow(), InputConstants.KEY_RCONTROL);
+		return fishpv.compat.PvCompat.keyDown(InputConstants.KEY_LCONTROL)
+			|| fishpv.compat.PvCompat.keyDown(InputConstants.KEY_RCONTROL);
 	}
 
 	private int clampPage(InventoryPane pane, int size) {

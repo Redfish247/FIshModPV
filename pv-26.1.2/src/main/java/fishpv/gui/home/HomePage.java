@@ -535,7 +535,7 @@ public final class HomePage {
 		if (mc == null || mc.getWindow() == null) {
 			return false;
 		}
-		return InputConstants.isKeyDown(mc.getWindow(), InputConstants.KEY_LSHIFT);
+		return fishpv.compat.PvCompat.keyDown(InputConstants.KEY_LSHIFT);
 	}
 
 	private Layout measure(Font font, int w) {

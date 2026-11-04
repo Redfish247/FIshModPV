@@ -852,8 +852,8 @@ public final class ProfileViewerScreen extends Screen {
 		if (mc == null || mc.getWindow() == null) {
 			return false;
 		}
-		return InputConstants.isKeyDown(mc.getWindow(), InputConstants.KEY_LSHIFT)
-			|| InputConstants.isKeyDown(mc.getWindow(), InputConstants.KEY_RSHIFT);
+		return fishpv.compat.PvCompat.keyDown(InputConstants.KEY_LSHIFT)
+			|| fishpv.compat.PvCompat.keyDown(InputConstants.KEY_RSHIFT);
 	}
 
 	private void renderBody(GuiGraphicsExtractor g, int x, int y, int w, int h, int mouseX, int mouseY, float delta) {

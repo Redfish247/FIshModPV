@@ -13,3 +13,4 @@ rootProject.name = 'FishPV'
 
 include 'pv-26.1.2'
 include 'pv-26.2'
+include 'pv-26.3'

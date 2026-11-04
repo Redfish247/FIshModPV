@@ -323,7 +323,7 @@ public final class MiningUi {
 		if (mc == null || mc.getWindow() == null) {
 			return false;
 		}
-		return InputConstants.isKeyDown(mc.getWindow(), InputConstants.KEY_LSHIFT);
+		return fishpv.compat.PvCompat.keyDown(InputConstants.KEY_LSHIFT);
 	}
 
 	public record HoverZone(int x, int y, int w, int h, List<PvTooltip.Line> lines, boolean coleWeight) {

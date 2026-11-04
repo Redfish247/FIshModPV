@@ -13,6 +13,10 @@ public final class PvCompat {
 
 	private PvCompat() {}
 
+	public static boolean keyDown(int key) {
+		return com.mojang.blaze3d.platform.InputConstants.isKeyDown(Minecraft.getInstance().getWindow(), key);
+	}
+
 	public static Screen curScreen(Minecraft client) { return client.gui.screen(); }
 
 	public static void showScreen(Minecraft client, Screen screen) { client.gui.setScreen(screen); }
