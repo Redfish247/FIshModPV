@@ -46,7 +46,14 @@ public final class EnchantTooltip {
 	private EnchantTooltip() {
 	}
 
+	private static final long CHROMA_MS = 6000L;
+	private static final int ROW_SHIFT = 3; // per-line wave offset so it flows diagonally
+
 	public static Component colorize(Component line) {
+		return colorize(line, 0);
+	}
+
+	public static Component colorize(Component line, int row) {
 		if (line == null) {
 			return Component.empty();
 		}
@@ -79,7 +86,7 @@ public final class EnchantTooltip {
 			boolean ultimate = isUltimate(name);
 			String label = name + " " + matcher.group(2).toUpperCase(Locale.ROOT);
 			if (level >= max) {
-				out.append(PvDraw.chromaText(label, true));
+				out.append(PvDraw.chromaText(label, true, row * ROW_SHIFT + out.getString().length(), CHROMA_MS));
 			} else if (level == max - 1) {
 				out.append(PvDraw.styled(label, T6_GOLD, true));
 			} else if (ultimate) {

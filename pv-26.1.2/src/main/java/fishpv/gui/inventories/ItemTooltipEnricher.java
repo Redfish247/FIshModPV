@@ -79,7 +79,7 @@ final class ItemTooltipEnricher {
 			if (line == null) {
 				continue;
 			}
-			Component colored = EnchantTooltip.colorize(line);
+			Component colored = EnchantTooltip.colorize(line, i);
 			if (colored != line) {
 				lines.set(i, colored);
 			}

@@ -133,7 +133,7 @@ final class HomeSkillSlayerBars {
 	}
 
 	private static CachedBar skillBar(ProfileSnapshot.SkillEntry skill) {
-		if (fishpv.api.BetterPVConfig.overflowSkills() && skill.overflowLevel() > skill.level()) {
+		if (fishpv.api.BetterPVConfig.overflowSkills() && skill.maxed() && skill.overflowLevel() > skill.level()) {
 			// Uncapped level; the bar stays gold and fills toward the next overflow level.
 			float over = skill.overflowLevel();
 			return new CachedBar(

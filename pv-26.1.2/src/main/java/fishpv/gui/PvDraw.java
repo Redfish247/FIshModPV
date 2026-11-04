@@ -568,13 +568,17 @@ public final class PvDraw {
 	}
 
 	public static Component chromaText(String text, boolean bold) {
+		return chromaText(text, bold, 0, 2800L);
+	}
+
+	public static Component chromaText(String text, boolean bold, int start, long periodMs) {
 		if (text == null || text.isEmpty()) {
 			return Component.empty();
 		}
-		float t = (System.currentTimeMillis() % 2800L) / 2800F;
+		float t = (System.currentTimeMillis() % periodMs) / (float) periodMs;
 		MutableComponent out = Component.empty();
 		for (int i = 0; i < text.length(); i++) {
-			int rgb = rainbowArgb(positiveModulo(t + i * 0.07F, 1.0F)) & 0xFFFFFF;
+			int rgb = rainbowArgb(positiveModulo(t + (start + i) * 0.07F, 1.0F)) & 0xFFFFFF;
 			Style style = Style.EMPTY.withColor(TextColor.fromRgb(rgb)).withItalic(false);
 			if (bold) {
 				style = style.withBold(true);
