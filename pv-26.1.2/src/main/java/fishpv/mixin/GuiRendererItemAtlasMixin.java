@@ -29,7 +29,7 @@ public abstract class GuiRendererItemAtlasMixin {
 
 	@Inject(method = "getGuiScaleInvalidatingItemAtlasIfChanged", at = @At("RETURN"), cancellable = true)
 	private void betterpv$hiResItems(CallbackInfoReturnable<Integer> cir) {
-		int multiplier = Minecraft.getInstance().screen instanceof ProfileViewerScreen ? HI_RES : 1;
+		int multiplier = fishpv.compat.PvCompat.curScreen(Minecraft.getInstance()) instanceof ProfileViewerScreen ? HI_RES : 1;
 		if (multiplier != betterpv$lastMultiplier) {
 			betterpv$lastMultiplier = multiplier;
 			invalidateItemAtlas();
