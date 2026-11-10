@@ -709,8 +709,8 @@ public final class DungeonPage {
 		float scaleX = 1F;
 		float scaleY = 1F;
 		if (animating) {
-			scaleX = Math.max(0.04F, Math.abs((float) Math.cos(angle)));
-			scaleY = 1F - (1F - scaleX) * 0.06F;
+			scaleY = Math.max(0.04F, Math.abs((float) Math.cos(angle)));
+			scaleX = 1F - (1F - scaleY) * 0.06F;
 		}
 
 		float cxFlip = x + w / 2F;
@@ -902,8 +902,8 @@ public final class DungeonPage {
 		float scaleX = 1F;
 		float scaleY = 1F;
 		if (animating) {
-			scaleX = Math.max(0.04F, Math.abs((float) Math.cos(angle)));
-			scaleY = 1F - (1F - scaleX) * 0.06F;
+			scaleY = Math.max(0.04F, Math.abs((float) Math.cos(angle)));
+			scaleX = 1F - (1F - scaleY) * 0.06F;
 		}
 
 		float cxFlip = x + w / 2F;

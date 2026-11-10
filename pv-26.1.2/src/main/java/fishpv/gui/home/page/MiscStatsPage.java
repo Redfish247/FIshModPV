@@ -225,7 +225,7 @@ public final class MiscStatsPage {
 
 		g.pose().pushMatrix();
 		g.pose().translate(x + w / 2F, y + h / 2F);
-		g.pose().scale(scaleX, 1F);
+		g.pose().scale(1F, scaleX);
 		g.pose().translate(-(x + w / 2F), -(y + h / 2F));
 
 		PvDraw.innerPanel(g, x, y, w, h);
@@ -692,7 +692,7 @@ public final class MiscStatsPage {
 
 		g.pose().pushMatrix();
 		g.pose().translate(x + w / 2F, y + h / 2F);
-		g.pose().scale(scaleX, 1F);
+		g.pose().scale(1F, scaleX);
 		g.pose().translate(-(x + w / 2F), -(y + h / 2F));
 
 		PvDraw.innerPanel(g, x, y, w, h);
