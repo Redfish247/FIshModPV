@@ -22,6 +22,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import net.minecraft.client.Minecraft;
+import fishpv.gui.SmoothTexture;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.resources.Identifier;
 
@@ -116,7 +117,7 @@ public final class SkyBlockItemIconCache {
 					BetterPV.MOD_ID,
 					"dynamic_items/" + UUID.nameUUIDFromBytes(state.model.getBytes(StandardCharsets.UTF_8))
 				);
-				client.getTextureManager().register(id, new DynamicTexture(() -> "BetterPV item " + state.model, toRegister));
+				client.getTextureManager().register(id, SmoothTexture.apply(new DynamicTexture(() -> "BetterPV item " + state.model, toRegister)));
 				state.size = size;
 				state.textureId = id;
 				state.loaded = true;
