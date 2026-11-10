@@ -208,7 +208,7 @@ public final class MiscStatsPage {
 		boolean hovering = hit(mx, my, x, y, w, h)
 			&& !hit(mx, my, this.guildBtnX, this.guildBtnY, this.guildBtnW, this.guildBtnH);
 		boolean showExtras = this.leftExtrasFace;
-		float scaleX = 1F;
+		float slideDx = 0F;
 		if (this.leftFlipStartMs != 0L) {
 			float t = (System.currentTimeMillis() - this.leftFlipStartMs) / (float) FLIP_MS;
 			if (t >= 1F) {
@@ -218,17 +218,15 @@ public final class MiscStatsPage {
 			} else {
 				float eased = easeInOutCubic(Math.max(0F, Math.min(1F, t)));
 				double angle = eased * Math.PI;
-				scaleX = (float) Math.max(0.04, Math.abs(Math.cos(angle)));
+				slideDx = PvDraw.slideOffset(eased, w);
 				showExtras = Math.cos(angle) < 0 ? this.leftFlipTarget : this.leftExtrasFace;
 			}
 		}
 
-		g.pose().pushMatrix();
-		g.pose().translate(x + w / 2F, y + h / 2F);
-		g.pose().scale(1F, scaleX);
-		g.pose().translate(-(x + w / 2F), -(y + h / 2F));
-
 		PvDraw.innerPanel(g, x, y, w, h);
+		g.enableScissor(x, y, x + w, y + h);
+		g.pose().pushMatrix();
+		g.pose().translate(slideDx, 0F);
 		if (hovering && this.leftFlipStartMs == 0L) {
 			PvDraw.fill(g, x + 1, y + 1, w - 2, h - 2, PANEL_HOVER);
 		}
@@ -242,6 +240,7 @@ public final class MiscStatsPage {
 			drawProfileFace(g, font, lx, ly, lw, y + h - PAD, mx, my);
 		}
 		g.pose().popMatrix();
+		g.disableScissor();
 	}
 
 	private void drawProfileFace(
@@ -675,7 +674,7 @@ public final class MiscStatsPage {
 
 		boolean hovering = hit(mx, my, x, y, w, h);
 		boolean showDeaths = this.rightDeathsFace;
-		float scaleX = 1F;
+		float slideDx = 0F;
 		if (this.rightFlipStartMs != 0L) {
 			float t = (System.currentTimeMillis() - this.rightFlipStartMs) / (float) FLIP_MS;
 			if (t >= 1F) {
@@ -685,17 +684,15 @@ public final class MiscStatsPage {
 			} else {
 				float eased = easeInOutCubic(Math.max(0F, Math.min(1F, t)));
 				double angle = eased * Math.PI;
-				scaleX = (float) Math.max(0.04, Math.abs(Math.cos(angle)));
+				slideDx = PvDraw.slideOffset(eased, w);
 				showDeaths = Math.cos(angle) < 0 ? this.rightFlipTarget : this.rightDeathsFace;
 			}
 		}
 
-		g.pose().pushMatrix();
-		g.pose().translate(x + w / 2F, y + h / 2F);
-		g.pose().scale(1F, scaleX);
-		g.pose().translate(-(x + w / 2F), -(y + h / 2F));
-
 		PvDraw.innerPanel(g, x, y, w, h);
+		g.enableScissor(x, y, x + w, y + h);
+		g.pose().pushMatrix();
+		g.pose().translate(slideDx, 0F);
 		if (hovering && this.rightFlipStartMs == 0L) {
 			PvDraw.fill(g, x + 1, y + 1, w - 2, h - 2, PANEL_HOVER);
 		}
@@ -760,6 +757,7 @@ public final class MiscStatsPage {
 		}
 
 		g.pose().popMatrix();
+		g.disableScissor();
 	}
 
 	private int stat(

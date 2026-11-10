@@ -127,21 +127,16 @@ public final class RiftOverviewPage {
 		boolean showQuests = animating
 			? (Math.cos(angle) < 0.0 ? this.leftFlipTarget : this.leftQuestFace)
 			: this.leftQuestFace;
-		float scaleX = 1F;
-		float scaleY = 1F;
+		float slideDx = 0F;
 		if (animating) {
-			scaleY = Math.max(0.04F, Math.abs((float) Math.cos(angle)));
-			scaleX = 1F - (1F - scaleY) * 0.06F;
+			slideDx = PvDraw.slideOffset(eased, w);
 		}
 
-		float cxFlip = x + w / 2F;
-		float cyFlip = y + h / 2F;
-		g.pose().pushMatrix();
-		g.pose().translate(cxFlip, cyFlip);
-		g.pose().scale(scaleX, scaleY);
-		g.pose().translate(-cxFlip, -cyFlip);
-
 		PvDraw.innerPanel(g, x, y, w, h);
+		g.enableScissor(x, y, x + w, y + h);
+		g.pose().pushMatrix();
+		g.pose().translate(slideDx, 0F);
+
 		if (hovered && !animating) {
 			PvDraw.fill(g, x + 1, y + 1, w - 2, h - 2, PANEL_HOVER);
 		}
@@ -155,6 +150,7 @@ public final class RiftOverviewPage {
 		}
 
 		g.pose().popMatrix();
+		g.disableScissor();
 	}
 
 	private void drawStatsFace(

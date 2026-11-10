@@ -706,22 +706,17 @@ public final class DungeonPage {
 		boolean showEssence = animating
 			? (Math.cos(angle) < 0.0 ? this.classFlipTarget : this.classEssenceFace)
 			: this.classEssenceFace;
-		float scaleX = 1F;
-		float scaleY = 1F;
+		float slideDx = 0F;
 		if (animating) {
-			scaleY = Math.max(0.04F, Math.abs((float) Math.cos(angle)));
-			scaleX = 1F - (1F - scaleY) * 0.06F;
+			slideDx = PvDraw.slideOffset(eased, w);
 		}
 
-		float cxFlip = x + w / 2F;
-		float cyFlip = y + h / 2F;
+		PvDraw.innerPanel(g, x, y, w, h);
+		g.enableScissor(x, y, x + w, y + h);
 		g.pose().pushMatrix();
-		g.pose().translate(cxFlip, cyFlip);
-		g.pose().scale(scaleX, scaleY);
-		g.pose().translate(-cxFlip, -cyFlip);
+		g.pose().translate(slideDx, 0F);
 
 		this.classHitH = h;
-		PvDraw.innerPanel(g, x, y, w, h);
 
 		if (showEssence) {
 			drawWitherUndeadEssenceFace(g, font, x + PAD, y + PAD, w - PAD * 2, h - PAD * 2, !animating);
@@ -730,6 +725,7 @@ public final class DungeonPage {
 		}
 
 		g.pose().popMatrix();
+		g.disableScissor();
 	}
 
 	private void drawClassStatsFace(GuiGraphicsExtractor g, Font font, int x, int y, int w, int h, int totalY) {
@@ -899,22 +895,17 @@ public final class DungeonPage {
 		boolean showEssence = animating
 			? (Math.cos(angle) < 0.0 ? this.runsFlipTarget : this.runsEssenceFace)
 			: this.runsEssenceFace;
-		float scaleX = 1F;
-		float scaleY = 1F;
+		float slideDx = 0F;
 		if (animating) {
-			scaleY = Math.max(0.04F, Math.abs((float) Math.cos(angle)));
-			scaleX = 1F - (1F - scaleY) * 0.06F;
+			slideDx = PvDraw.slideOffset(eased, w);
 		}
 
-		float cxFlip = x + w / 2F;
-		float cyFlip = y + h / 2F;
+		PvDraw.innerPanel(g, x, y, w, h);
+		g.enableScissor(x, y, x + w, y + h);
 		g.pose().pushMatrix();
-		g.pose().translate(cxFlip, cyFlip);
-		g.pose().scale(scaleX, scaleY);
-		g.pose().translate(-cxFlip, -cyFlip);
+		g.pose().translate(slideDx, 0F);
 
 		this.runsHitH = h;
-		PvDraw.innerPanel(g, x, y, w, h);
 
 		if (showEssence) {
 			drawIceSpiderDragonEssenceFace(g, font, x + PAD, y + PAD, w - PAD * 2, h - PAD * 2, !animating);
@@ -923,6 +914,7 @@ public final class DungeonPage {
 		}
 
 		g.pose().popMatrix();
+		g.disableScissor();
 	}
 
 	private void drawRunsFace(GuiGraphicsExtractor g, Font font, int x, int y, int w, FloorLayout floors) {

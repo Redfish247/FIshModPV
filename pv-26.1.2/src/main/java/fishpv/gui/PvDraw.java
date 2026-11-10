@@ -259,6 +259,17 @@ public final class PvDraw {
 		glassSurface(g, x, y, w, h, 8, GLASS_TOP, GLASS_BOTTOM, C_TR | C_BR | C_BL);
 	}
 
+	/**
+	 * Horizontal offset for the card slide: the old face slides out to the left over the first half,
+	 * then the new face slides in from the right over the second half. {@code eased} is 0..1.
+	 */
+	public static float slideOffset(float eased, int w) {
+		if (eased < 0.5F) {
+			return -w * (eased * 2F);
+		}
+		return w * (1F - (eased - 0.5F) * 2F);
+	}
+
 	public static void innerPanel(GuiGraphicsExtractor g, int x, int y, int w, int h) {
 		glassSurface(g, x, y, w, h, 5, GLASS_INNER_TOP, GLASS_INNER_BOTTOM, C_ALL);
 	}

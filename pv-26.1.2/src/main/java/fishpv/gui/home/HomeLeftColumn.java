@@ -242,19 +242,17 @@ final class HomeLeftColumn {
 			: this.leftStatsFace;
 		float scaleX = 1F;
 		float scaleY = 1F;
+		float slideDx = 0F;
 		if (animating) {
-			scaleY = Math.max(0.04F, Math.abs((float) Math.cos(angle)));
-			scaleX = 1F - (1F - scaleY) * 0.06F;
+			slideDx = PvDraw.slideOffset(eased, w);
 		}
 
 		float cxFlip = x + w / 2F;
 		float cyFlip = y + h / 2F;
-		g.pose().pushMatrix();
-		g.pose().translate(cxFlip, cyFlip);
-		g.pose().scale(scaleX, scaleY);
-		g.pose().translate(-cxFlip, -cyFlip);
-
 		PvDraw.innerPanel(g, x, y, w, h);
+		g.enableScissor(x, y, x + w, y + h);
+		g.pose().pushMatrix();
+		g.pose().translate(slideDx, 0F);
 
 		boolean drawModelAfter = false;
 		int modelX0 = 0;
@@ -272,7 +270,8 @@ final class HomeLeftColumn {
 				g, font, x, y, w, h, layout, mouseX, mouseY,
 				snapshot, playerStatus, playerRank, activeNw, senither, lily, weightSystem, loadError, zones
 			);
-			if (modelBox != null) {
+			// Entity rendering ignores the pose and scissor, so the model only draws once the slide is done.
+			if (modelBox != null && !animating) {
 				drawModelAfter = true;
 				modelX0 = modelBox[0];
 				modelY0 = modelBox[1];
@@ -282,8 +281,9 @@ final class HomeLeftColumn {
 		}
 
 		g.pose().popMatrix();
+		g.disableScissor();
 
-		// Entity rendering ignores the GUI pose matrix - apply the same flip in screen space after pop.
+		// Entity rendering ignores the GUI pose matrix, so it is drawn in screen space after pop.
 		if (drawModelAfter && snapshot.playerUuid() != null) {
 			this.playerModel.draw(
 				g,

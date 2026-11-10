@@ -177,24 +177,20 @@ public final class GlacitePage {
 		boolean showEssence = animating
 			? (Math.cos(angle) < 0.0 ? this.milestonesFlipTarget : this.milestonesEssenceFace)
 			: this.milestonesEssenceFace;
-		float scaleX = 1F;
-		float scaleY = 1F;
+		float slideDx = 0F;
 		if (animating) {
-			scaleY = Math.max(0.04F, Math.abs((float) Math.cos(angle)));
-			scaleX = 1F - (1F - scaleY) * 0.06F;
+			slideDx = PvDraw.slideOffset(eased, w);
 		}
 
-		float cxFlip = x + w / 2F;
-		float cyFlip = y + h / 2F;
-		g.pose().pushMatrix();
-		g.pose().translate(cxFlip, cyFlip);
-		g.pose().scale(scaleX, scaleY);
-		g.pose().translate(-cxFlip, -cyFlip);
-
 		PvDraw.innerPanel(g, x, y, w, h);
+		g.enableScissor(x, y, x + w, y + h);
+		g.pose().pushMatrix();
+		g.pose().translate(slideDx, 0F);
+
 		renderCorpseMilestones(g, font, snapshot, zones, x, y, w, h, mx, my);
 
 		g.pose().popMatrix();
+		g.disableScissor();
 	}
 
 	private void renderCorpseMilestones(
