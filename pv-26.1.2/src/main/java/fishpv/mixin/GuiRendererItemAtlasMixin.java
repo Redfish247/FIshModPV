@@ -6,6 +6,7 @@
 package fishpv.mixin;
 
 import fishpv.gui.ProfileViewerScreen;
+import fishpv.gui.SmoothTexture;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.render.GuiRenderer;
 import org.spongepowered.asm.mixin.Mixin;
@@ -32,6 +33,7 @@ public abstract class GuiRendererItemAtlasMixin {
 		int multiplier = fishpv.compat.PvCompat.curScreen(Minecraft.getInstance()) instanceof ProfileViewerScreen ? HI_RES : 1;
 		if (multiplier != betterpv$lastMultiplier) {
 			betterpv$lastMultiplier = multiplier;
+			SmoothTexture.setItemAtlasLinear(multiplier != 1);
 			invalidateItemAtlas();
 		}
 		if (multiplier != 1) {

@@ -14,4 +14,6 @@ public final class SmoothTexture {
 	public static <T extends AbstractTexture> T apply(T texture) {
 		return texture;
 	}
+
+	public static void setItemAtlasLinear(boolean linear) {}
 }
