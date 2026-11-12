@@ -2,7 +2,7 @@
 
 A Hypixel SkyBlock profile viewer for Fabric (client-side). Open it in game with `/pv <player>` to see networth, dungeons, slayers, skills, weights and more.
 
-Derived from [BetterPV](https://github.com/) by Vyriv. Licensed under MPL-2.0.
+Derived from BetterPV by Vyriv. Licensed under MPL-2.0.
 
 ## Features
 
