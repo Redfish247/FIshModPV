@@ -47,9 +47,7 @@ API shape - see [Known risk areas](#known-risk-areas) if it doesn't quite match 
 - Minecraft 26.1.2, Fabric Loader 0.18.4+, Fabric API 0.146.1+26.1.2
 - Java 25 (Minecraft 26.1 bumped its minimum JDK)
 - Gradle 9.4.0+ / Fabric Loom 1.15 (IntelliJ IDEA 2025.3+ if you want mixins to work in the IDE)
-- Your own [Hypixel API key](https://developer.hypixel.net/) (Hypixel retired shared keys; generate
-  one with `/api new` in-game on Hypixel, or via the developer dashboard)
-
+- 
 ## Building
 
 ```
@@ -59,14 +57,6 @@ API shape - see [Known risk areas](#known-risk-areas) if it doesn't quite match 
 (No Gradle wrapper jar is checked in since this environment couldn't download one - run
 `gradle wrapper` once you have network access, or use a local Gradle 9.4+ install directly, which
 is what the command above assumes.)
-
-## Using it in-game
-
-```
-/fishmod key <your-hypixel-api-key>   # one-time setup, saved to config/fishmodpv.json
-/fishmod view <username>              # open the profile viewer for any player
-/fishmod                              # shorthand for viewing your own profile
-```
 
 ## Architecture
 
